@@ -226,6 +226,8 @@ def extract_transcript(
     video_id: str,
     audio_path: str | None,
     whisper_model_size: str = "base",
+    segment_min_duration: float = 5.0,
+    segment_max_duration: float = 30.0,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TranscriptSegment]:
     if progress_cb:
@@ -236,7 +238,7 @@ def extract_transcript(
     if raw_segments:
         if progress_cb:
             progress_cb(0.5)
-        segments = resegment_by_sentences(raw_segments)
+        segments = resegment_by_sentences(raw_segments, segment_min_duration, segment_max_duration)
         if progress_cb:
             progress_cb(1.0)
         return segments
@@ -252,7 +254,7 @@ def extract_transcript(
     if progress_cb:
         progress_cb(0.8)
 
-    segments = resegment_by_sentences(raw_segments)
+    segments = resegment_by_sentences(raw_segments, segment_min_duration, segment_max_duration)
     if progress_cb:
         progress_cb(1.0)
 

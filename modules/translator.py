@@ -18,9 +18,6 @@ TRANSLATION_SYSTEM_PROMPT = (
     "Translate colloquial speech naturally — do not make it overly formal."
 )
 
-BATCH_SIZE = 15
-
-
 def _build_translation_prompt(texts: list[str]) -> str:
     numbered = "\n".join(f"{i+1}. \"{t}\"" for i, t in enumerate(texts))
     return (
@@ -70,7 +67,7 @@ def translate_segments_claude(
             )
         return response.content[0].text
 
-    return _translate_batched(segments, call_fn, progress_cb)
+    return _translate_batched(segments, call_fn, config.translation_batch_size, progress_cb)
 
 
 def translate_segments_gemini(
@@ -94,19 +91,20 @@ def translate_segments_gemini(
             )
         return response.text
 
-    return _translate_batched(segments, call_fn, progress_cb)
+    return _translate_batched(segments, call_fn, config.translation_batch_size, progress_cb)
 
 
 def _translate_batched(
     segments: list[TranscriptSegment],
     call_fn: Callable[[str], str],
+    batch_size: int = 15,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TranscriptSegment]:
     all_translated: list[TranscriptSegment] = []
-    total_batches = (len(segments) + BATCH_SIZE - 1) // BATCH_SIZE
+    total_batches = (len(segments) + batch_size - 1) // batch_size
 
-    for batch_idx in range(0, len(segments), BATCH_SIZE):
-        batch = segments[batch_idx : batch_idx + BATCH_SIZE]
+    for batch_idx in range(0, len(segments), batch_size):
+        batch = segments[batch_idx : batch_idx + batch_size]
         texts = [seg.text for seg in batch]
         prompt = _build_translation_prompt(texts)
 
@@ -120,7 +118,7 @@ def _translate_batched(
             ))
 
         if progress_cb:
-            current_batch = batch_idx // BATCH_SIZE + 1
+            current_batch = batch_idx // batch_size + 1
             progress_cb(current_batch / total_batches)
 
     return all_translated

@@ -11,8 +11,6 @@ from utils.audio_utils import speed_change, generate_silence
 
 logger = logging.getLogger(__name__)
 
-FADE_MS = 50
-
 
 @dataclass
 class TimeRegion:
@@ -34,9 +32,9 @@ class AlignedSegment:
     video_speed: float  # 1.0 = normal, <1.0 = video slows down for this segment
 
 
-def _apply_fades(audio: AudioSegment) -> AudioSegment:
-    if len(audio) > FADE_MS * 3:
-        return audio.fade_in(FADE_MS).fade_out(FADE_MS)
+def _apply_fades(audio: AudioSegment, fade_ms: int = 50) -> AudioSegment:
+    if len(audio) > fade_ms * 3:
+        return audio.fade_in(fade_ms).fade_out(fade_ms)
     return audio
 
 
@@ -83,7 +81,7 @@ def align_segment(
         adjusted = speed_change(tts_audio, speed_factor)
         video_speed = 1.0
 
-    adjusted = _apply_fades(adjusted)
+    adjusted = _apply_fades(adjusted, config.fade_ms)
 
     return AlignedSegment(
         original_start=original_segment.start,
@@ -146,14 +144,70 @@ def calculate_time_regions(
     return regions, segment_new_starts, current
 
 
+def warp_background_audio(
+    background: AudioSegment,
+    regions: list[TimeRegion],
+) -> AudioSegment:
+    """Warp background audio to match the variable-speed video timeline.
+
+    Each region of the background is sliced and speed-adjusted to match
+    the corresponding region in the new (stretched) timeline.
+    """
+    chunks: list[AudioSegment] = []
+    bg_len_ms = len(background)
+
+    for region in regions:
+        start_ms = int(region.start * 1000)
+        end_ms = int(region.end * 1000)
+
+        # Clamp to background audio bounds
+        start_ms = min(start_ms, bg_len_ms)
+        end_ms = min(end_ms, bg_len_ms)
+
+        if end_ms <= start_ms:
+            # Region is beyond background audio — fill with silence
+            new_dur_ms = int((region.new_end - region.new_start) * 1000)
+            chunks.append(generate_silence(max(new_dur_ms, 0), background.frame_rate))
+            continue
+
+        chunk = background[start_ms:end_ms]
+
+        if region.video_speed < 0.99:
+            # Video is slowed — slow down background by the same factor
+            chunk = speed_change(chunk, region.video_speed)
+
+        chunks.append(chunk)
+
+    if not chunks:
+        return background
+
+    warped = chunks[0]
+    for chunk in chunks[1:]:
+        warped += chunk
+
+    return warped
+
+
 def assemble_full_audio(
     aligned_segments: list[AlignedSegment],
     segment_new_starts: list[float],
     new_total_duration: float,
+    background: AudioSegment | None = None,
     sample_rate: int = 44100,
 ) -> AudioSegment:
     """Place each segment's audio at its new (stretched) position."""
-    canvas = generate_silence(int(new_total_duration * 1000), sample_rate)
+    canvas_ms = int(new_total_duration * 1000)
+
+    if background is not None:
+        # Use the warped background as the canvas
+        canvas = background
+        # Pad or trim to match expected duration
+        if len(canvas) < canvas_ms:
+            canvas += generate_silence(canvas_ms - len(canvas), sample_rate)
+        elif len(canvas) > canvas_ms:
+            canvas = canvas[:canvas_ms]
+    else:
+        canvas = generate_silence(canvas_ms, sample_rate)
 
     for seg, new_start in zip(aligned_segments, segment_new_starts):
         position_ms = int(new_start * 1000)
@@ -176,13 +230,14 @@ def create_dubbed_audio(
     output_path: str,
     config: Config,
     progress_cb: Callable[[float], None] | None = None,
+    background_audio_path: str | None = None,
 ) -> tuple[str, list[TimeRegion], float]:
     """Create dubbed audio and return (path, time_regions, new_total_duration)."""
     # Clamp segments that extend beyond the actual video duration
     for seg in original_segments:
         if seg.end > total_duration:
             logger.info(f"Clamping segment end {seg.end:.2f}s -> {total_duration:.2f}s (video duration)")
-            seg.end = total_duration
+            seg.duration = total_duration - seg.start
         if seg.start >= total_duration:
             logger.warning(f"Segment starts at {seg.start:.2f}s, past video end {total_duration:.2f}s")
 
@@ -212,7 +267,18 @@ def create_dubbed_audio(
     if progress_cb:
         progress_cb(0.6)
 
-    full_audio = assemble_full_audio(aligned, segment_new_starts, new_duration)
+    # Prepare background audio if provided
+    background = None
+    if background_audio_path:
+        logger.info("Warping background audio to match new timeline...")
+        raw_bg = AudioSegment.from_file(background_audio_path)
+        raw_bg = raw_bg + config.background_volume_db  # reduce volume
+        background = warp_background_audio(raw_bg, regions)
+
+    if progress_cb:
+        progress_cb(0.8)
+
+    full_audio = assemble_full_audio(aligned, segment_new_starts, new_duration, background)
 
     if progress_cb:
         progress_cb(0.9)

@@ -1,11 +1,16 @@
+from __future__ import annotations
+
 import logging
 import time
 import wave
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable
+from typing import Callable, TYPE_CHECKING
 
 from pydub import AudioSegment
+
+if TYPE_CHECKING:
+    from modules.cache import PipelineCache
 
 from config import Config
 from modules.transcript import TranscriptSegment
@@ -68,6 +73,7 @@ def synthesize_gemini(
 
     if cost_tracker and response.usage_metadata:
         cost_tracker.add_tts_usage(
+            config.gemini_tts_model,
             response.usage_metadata.prompt_token_count or 0,
             response.usage_metadata.candidates_token_count or 0,
         )
@@ -106,12 +112,33 @@ def synthesize_all_segments(
     config: Config,
     cost_tracker: CostTracker | None = None,
     progress_cb: Callable[[float], None] | None = None,
+    cache: PipelineCache | None = None,
 ) -> list[TTSResult]:
     results: list[TTSResult] = []
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
+    voice = config.tts_voice_name or "Kore"
+    model = config.gemini_tts_model
+    cached_count = 0
+
     for i, segment in enumerate(segments):
+        # Check TTS cache first
+        if cache:
+            cached_path = cache.get_tts_segment(segment.text, voice, model)
+            if cached_path:
+                audio = AudioSegment.from_wav(cached_path)
+                duration = len(audio) / 1000.0
+                results.append(TTSResult(
+                    audio_path=cached_path,
+                    duration=duration,
+                    segment_index=i,
+                ))
+                cached_count += 1
+                if progress_cb:
+                    progress_cb((i + 1) / len(segments))
+                continue
+
         audio_path = str(output_path / f"tts_{i:04d}.wav")
         logger.info(f"TTS {i+1}/{len(segments)}: {segment.text[:80]}...")
 
@@ -127,6 +154,10 @@ def synthesize_all_segments(
 
         logger.info(f"TTS {i+1}/{len(segments)}: generated {duration:.2f}s audio")
 
+        # Store in cache
+        if cache:
+            cache.put_tts_segment(segment.text, voice, model, audio_path)
+
         results.append(TTSResult(
             audio_path=audio_path,
             duration=duration,
@@ -135,5 +166,8 @@ def synthesize_all_segments(
 
         if progress_cb:
             progress_cb((i + 1) / len(segments))
+
+    if cached_count > 0:
+        logger.info(f"TTS: {cached_count}/{len(segments)} segments from cache")
 
     return results

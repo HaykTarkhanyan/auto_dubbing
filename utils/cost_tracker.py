@@ -24,7 +24,7 @@ class CostTracker:
     translation_model: str = ""
     tts_input_tokens: int = 0
     tts_output_tokens: int = 0
-    tts_model: str = "gemini-2.5-flash-preview-tts"
+    tts_model: str = ""
     tts_calls: int = 0
 
     def add_translation_usage(self, model: str, input_tokens: int, output_tokens: int):
@@ -32,7 +32,8 @@ class CostTracker:
         self.translation_input_tokens += input_tokens
         self.translation_output_tokens += output_tokens
 
-    def add_tts_usage(self, input_tokens: int, output_tokens: int):
+    def add_tts_usage(self, model: str, input_tokens: int, output_tokens: int):
+        self.tts_model = model
         self.tts_input_tokens += input_tokens
         self.tts_output_tokens += output_tokens
         self.tts_calls += 1

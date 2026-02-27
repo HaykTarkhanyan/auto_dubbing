@@ -16,6 +16,7 @@ edge-tts>=6.1.0
 
 # Audio processing
 pydub>=0.25.1
+demucs>=4.0.0
 
 # Web UI
 gradio>=5.0.0

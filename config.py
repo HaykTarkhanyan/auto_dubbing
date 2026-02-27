@@ -12,31 +12,43 @@ class Config:
     google_api_key: str = ""
 
     # --- Translation ---
-    translation_provider: str = "gemini"  # "gemini" or "claude"
+    translation_provider: str = "gemini"    # Options: "gemini", "claude"
     claude_model: str = "claude-sonnet-4-20250514"
     gemini_model: str = "gemini-2.5-pro"
-    translation_batch_size: int = 15
+    translation_batch_size: int = 15        # Number of segments per LLM call
 
     # --- TTS ---
-    tts_provider: str = "gemini"  # "gemini" or "edge_tts"
+    tts_provider: str = "gemini"            # Options: "gemini", "edge_tts"
     gemini_tts_model: str = "gemini-2.5-flash-preview-tts"
-    tts_voice_name: str = "Kore"
+    # Gemini TTS voices (all support Armenian):
+    #   Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede,
+    #   Callirrhoe, Autonoe, Enceladus, Iapetus, Umbriel, Algieba,
+    #   Despina, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar,
+    #   Alnilam, Schedar, Gacrux, Pulcherrima, Achird,
+    #   Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager, Sulafat
+    # Edge TTS voice (free fallback): hy-AM-AnahitNeural
+    tts_voice_name: str = "Zephyr"
     tts_speaking_rate: float = 1.0
 
-    # --- Whisper (fallback transcription) ---
+    # --- Whisper (fallback when no YouTube captions) ---
+    # Options: "tiny", "base", "small", "medium", "large"
+    # Larger = more accurate but slower and more VRAM
     whisper_model_size: str = "base"
 
     # --- Audio sync ---
-    speed_min: float = 0.75
-    speed_max: float = 1.35
-    fade_ms: int = 50
+    speed_min: float = 0.75     # Min TTS speedup (below this, pad with silence)
+    speed_max: float = 1.35     # Max TTS speedup (above this, slow down video)
+    fade_ms: int = 50           # Crossfade duration in ms to prevent clicks
+    keep_background_music: bool = True  # Preserve background music via vocal separation
+    background_volume_db: float = -3.0  # Volume adjustment for background music (dB)
 
     # --- Transcript segmentation ---
-    segment_min_duration: float = 5.0
-    segment_max_duration: float = 30.0
+    segment_min_duration: float = 5.0   # Merge short sentences until this minimum
+    segment_max_duration: float = 30.0  # Split sentences longer than this
 
     # --- Processing ---
     temp_dir: str = ""
+    cache_dir: str = "cache"            # Root cache directory (per-video caching)
 
     @classmethod
     def from_env(cls) -> "Config":

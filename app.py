@@ -5,7 +5,8 @@ import shutil
 import gradio as gr
 
 from config import Config
-from pipeline import run_pipeline
+from pipeline import run_pipeline, run_pipeline_phase1, run_pipeline_phase2, Phase1Result
+from modules.transcript import TranscriptSegment
 
 # Fix Windows console encoding for Armenian text
 if sys.platform == "win32":
@@ -35,75 +36,134 @@ def check_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-def run_dubbing(
-    url: str,
-    translation_provider: str,
-    tts_provider: str,
-    whisper_model: str,
-    speed_max: float,
-    progress=gr.Progress(),
-):
-    if not url.strip():
-        raise gr.Error("Please enter a YouTube URL")
-
-    if not check_ffmpeg():
-        raise gr.Error("ffmpeg is not installed. Please install ffmpeg and add it to your PATH.")
-
-    # Build config from env + UI overrides
+def _build_config(translation_provider, tts_provider, whisper_model, speed_max, keep_background):
     config = Config.from_env()
-
-    if translation_provider == "Claude Sonnet":
-        config.translation_provider = "claude"
-    else:
-        config.translation_provider = "gemini"
-
-    if tts_provider == "Edge TTS (Free)":
-        config.tts_provider = "edge_tts"
-    else:
-        config.tts_provider = "gemini"
-
+    config.translation_provider = "claude" if translation_provider == "Claude Sonnet" else "gemini"
+    config.tts_provider = "edge_tts" if tts_provider == "Edge TTS (Free)" else "gemini"
     config.whisper_model_size = whisper_model
     config.speed_max = speed_max
-
-    # Validate
+    config.keep_background_music = keep_background
     errors = config.validate()
     if errors:
         raise gr.Error(f"Configuration error: {'; '.join(errors)}")
+    return config
 
-    def progress_cb(frac: float, status: str):
-        progress(frac, desc=status)
 
-    result = run_pipeline(url, config, progress_cb=progress_cb)
-
-    if result.error:
-        raise gr.Error(f"Dubbing failed: {result.error}")
-
-    # Build transcript comparison table
+def _build_table(original_segments, translated_segments):
     table_data = []
-    for orig, trans in zip(result.original_segments, result.translated_segments):
+    for orig, trans in zip(original_segments, translated_segments):
         time_str = f"{orig.start:.1f}s"
         table_data.append([time_str, orig.text, trans.text])
+    return table_data
 
-    # Build cost info
-    cost = result.cost_tracker
-    cost_text = (
-        f"Dubbed: **{result.metadata.title}** ({result.metadata.duration:.0f}s)\n\n"
+
+def _build_cost_text(metadata, cost):
+    return (
+        f"Dubbed: **{metadata.title}** ({metadata.duration:.0f}s)\n\n"
         f"**API Costs:** Translation: ${cost.translation_cost:.4f} | "
         f"TTS: ${cost.tts_cost:.4f} ({cost.tts_calls} calls) | "
         f"**Total: ${cost.total_cost:.4f}**"
     )
 
+
+def run_phase1(
+    url, translation_provider, tts_provider, whisper_model, speed_max,
+    keep_background, skip_review, state, progress=gr.Progress(),
+):
+    if not url.strip():
+        raise gr.Error("Please enter a YouTube URL")
+    if not check_ffmpeg():
+        raise gr.Error("ffmpeg is not installed. Please install ffmpeg and add it to your PATH.")
+
+    config = _build_config(translation_provider, tts_provider, whisper_model, speed_max, keep_background)
+
+    def progress_cb(frac, status):
+        progress(frac, desc=status)
+
+    if skip_review:
+        # Run full pipeline without pausing
+        result = run_pipeline(url, config, progress_cb=progress_cb)
+        if result.error:
+            raise gr.Error(f"Dubbing failed: {result.error}")
+
+        table_data = _build_table(result.original_segments, result.translated_segments)
+        cost_text = _build_cost_text(result.metadata, result.cost_tracker)
+
+        return (
+            state,                                                  # state (unchanged)
+            table_data,                                             # transcript_table
+            cost_text,                                              # status_text
+            result.output_video_path,                               # output_video
+            gr.update(visible=True, value=result.output_video_path),  # download_btn
+            gr.update(visible=True),                                # dub_button
+            gr.update(visible=False),                               # continue_btn
+        )
+
+    # Run phase 1 only (steps 1-4)
+    phase1 = run_pipeline_phase1(url, config, progress_cb=progress_cb)
+
+    table_data = _build_table(phase1.original_segments, phase1.translated_segments)
+    cost = phase1.cost_tracker
+    status = (
+        f"Translation complete for **{phase1.metadata.title}** ({phase1.metadata.duration:.0f}s)\n\n"
+        f"Review and edit the Armenian translations below, then click **Continue Dubbing**.\n\n"
+        f"Translation cost: ${cost.translation_cost:.4f}"
+    )
+
     return (
-        result.output_video_path,
-        table_data,
-        cost_text,
-        gr.update(visible=True, value=result.output_video_path),
+        phase1,                         # state
+        table_data,                     # transcript_table
+        status,                         # status_text
+        None,                           # output_video (no video yet)
+        gr.update(visible=False),       # download_btn
+        gr.update(visible=False),       # dub_button (hide during review)
+        gr.update(visible=True),        # continue_btn
+    )
+
+
+def run_phase2(state, edited_table, progress=gr.Progress()):
+    phase1: Phase1Result = state
+    if phase1 is None:
+        raise gr.Error("No translation to continue. Please run Start Dubbing first.")
+
+    # Rebuild translated_segments from the edited table
+    translated_segments = []
+    for i, row in enumerate(edited_table):
+        orig = phase1.original_segments[i]
+        edited_text = str(row[2]) if len(row) > 2 else orig.text
+        translated_segments.append(TranscriptSegment(
+            text=edited_text,
+            start=orig.start,
+            duration=orig.duration,
+        ))
+
+    def progress_cb(frac, status):
+        progress(frac, desc=status)
+
+    result = run_pipeline_phase2(phase1, translated_segments, progress_cb=progress_cb)
+
+    if result.error:
+        raise gr.Error(f"Dubbing failed: {result.error}")
+
+    table_data = _build_table(result.original_segments, result.translated_segments)
+    cost_text = _build_cost_text(result.metadata, result.cost_tracker)
+
+    return (
+        None,                                                   # state (clear it)
+        table_data,                                             # transcript_table
+        cost_text,                                              # status_text
+        result.output_video_path,                               # output_video
+        gr.update(visible=True, value=result.output_video_path),  # download_btn
+        gr.update(visible=True),                                # dub_button
+        gr.update(visible=False),                               # continue_btn
     )
 
 
 def build_ui() -> gr.Blocks:
     with gr.Blocks(title="Auto Dubbing - EN → Armenian", theme=gr.themes.Soft()) as app:
         gr.Markdown("# Auto Dubbing Tool\n### English → Armenian Video Dubbing")
+
+        state = gr.State(value=None)
 
         with gr.Row():
             with gr.Column(scale=1):
@@ -134,12 +194,21 @@ def build_ui() -> gr.Blocks:
                     speed_max = gr.Slider(
                         minimum=1.0,
                         maximum=2.0,
-                        value=1.5,
+                        value=1.35,
                         step=0.05,
                         label="Max Speed Factor",
                     )
+                    keep_background = gr.Checkbox(
+                        label="Keep background music",
+                        value=True,
+                    )
+                    skip_review = gr.Checkbox(
+                        label="Skip translation review",
+                        value=False,
+                    )
 
                 dub_button = gr.Button("Start Dubbing", variant="primary", size="lg")
+                continue_btn = gr.Button("Continue Dubbing", variant="primary", size="lg", visible=False)
 
             with gr.Column(scale=1):
                 status_text = gr.Markdown("Ready. Paste a YouTube URL and click **Start Dubbing**.")
@@ -151,14 +220,23 @@ def build_ui() -> gr.Blocks:
                         transcript_table = gr.Dataframe(
                             headers=["Time", "Original (EN)", "Armenian (HY)"],
                             label="Translation Comparison",
+                            interactive=True,
                         )
 
                 download_btn = gr.DownloadButton("Download Dubbed Video", visible=False)
 
+        phase1_outputs = [state, transcript_table, status_text, output_video, download_btn, dub_button, continue_btn]
+
         dub_button.click(
-            fn=run_dubbing,
-            inputs=[url_input, translation_provider, tts_provider, whisper_model, speed_max],
-            outputs=[output_video, transcript_table, status_text, download_btn],
+            fn=run_phase1,
+            inputs=[url_input, translation_provider, tts_provider, whisper_model, speed_max, keep_background, skip_review, state],
+            outputs=phase1_outputs,
+        )
+
+        continue_btn.click(
+            fn=run_phase2,
+            inputs=[state, transcript_table],
+            outputs=phase1_outputs,
         )
 
     return app

@@ -1,6 +1,7 @@
-# Experiments, videos, and logs
+# Experiments, videos, cache, and logs
 experiments/
 videos/
+cache/
 *.log
 
 # Byte-compiled / optimized / DLL files
