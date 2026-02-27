@@ -14,6 +14,7 @@ PRICING = {
     "gemini-2.5-flash": {"input": 0.15, "output": 0.60},
     # Gemini TTS
     "gemini-2.5-flash-preview-tts": {"input": 0.50, "output": 10.00},
+    "gemini-2.5-pro-preview-tts": {"input": 1.00, "output": 20.00},
 }
 
 

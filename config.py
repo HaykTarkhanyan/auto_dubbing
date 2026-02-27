@@ -18,15 +18,13 @@ class Config:
     translation_batch_size: int = 15        # Number of segments per LLM call
 
     # --- TTS ---
-    tts_provider: str = "gemini"            # Options: "gemini", "edge_tts"
-    gemini_tts_model: str = "gemini-2.5-flash-preview-tts"
+    gemini_tts_model: str = "gemini-2.5-pro-preview-tts"
     # Gemini TTS voices (all support Armenian):
     #   Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede,
     #   Callirrhoe, Autonoe, Enceladus, Iapetus, Umbriel, Algieba,
     #   Despina, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar,
     #   Alnilam, Schedar, Gacrux, Pulcherrima, Achird,
     #   Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager, Sulafat
-    # Edge TTS voice (free fallback): hy-AM-AnahitNeural
     tts_voice_name: str = "Zephyr"
     tts_speaking_rate: float = 1.0
 
@@ -63,6 +61,6 @@ class Config:
             errors.append("ANTHROPIC_API_KEY is required when using Claude for translation")
         if self.translation_provider == "gemini" and not self.google_api_key:
             errors.append("GOOGLE_API_KEY is required when using Gemini for translation")
-        if self.tts_provider == "gemini" and not self.google_api_key:
-            errors.append("GOOGLE_API_KEY is required when using Gemini TTS")
+        if not self.google_api_key:
+            errors.append("GOOGLE_API_KEY is required for Gemini TTS")
         return errors

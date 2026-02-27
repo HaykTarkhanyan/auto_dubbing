@@ -36,10 +36,9 @@ def check_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-def _build_config(translation_provider, tts_provider, whisper_model, speed_max, keep_background):
+def _build_config(translation_provider, whisper_model, speed_max, keep_background):
     config = Config.from_env()
     config.translation_provider = "claude" if translation_provider == "Claude Sonnet" else "gemini"
-    config.tts_provider = "edge_tts" if tts_provider == "Edge TTS (Free)" else "gemini"
     config.whisper_model_size = whisper_model
     config.speed_max = speed_max
     config.keep_background_music = keep_background
@@ -67,7 +66,7 @@ def _build_cost_text(metadata, cost):
 
 
 def run_phase1(
-    url, translation_provider, tts_provider, whisper_model, speed_max,
+    url, translation_provider, whisper_model, speed_max,
     keep_background, skip_review, state, progress=gr.Progress(),
 ):
     if not url.strip():
@@ -75,7 +74,7 @@ def run_phase1(
     if not check_ffmpeg():
         raise gr.Error("ffmpeg is not installed. Please install ffmpeg and add it to your PATH.")
 
-    config = _build_config(translation_provider, tts_provider, whisper_model, speed_max, keep_background)
+    config = _build_config(translation_provider, whisper_model, speed_max, keep_background)
 
     def progress_cb(frac, status):
         progress(frac, desc=status)
@@ -181,11 +180,6 @@ def build_ui() -> gr.Blocks:
                     )
 
                 with gr.Accordion("Advanced Settings", open=False):
-                    tts_provider = gr.Radio(
-                        choices=["Gemini TTS", "Edge TTS (Free)"],
-                        value="Gemini TTS",
-                        label="TTS Provider",
-                    )
                     whisper_model = gr.Dropdown(
                         choices=["tiny", "base", "small", "medium", "large"],
                         value="base",
@@ -229,7 +223,7 @@ def build_ui() -> gr.Blocks:
 
         dub_button.click(
             fn=run_phase1,
-            inputs=[url_input, translation_provider, tts_provider, whisper_model, speed_max, keep_background, skip_review, state],
+            inputs=[url_input, translation_provider, whisper_model, speed_max, keep_background, skip_review, state],
             outputs=phase1_outputs,
         )
 
