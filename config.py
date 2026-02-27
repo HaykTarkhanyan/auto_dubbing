@@ -19,14 +19,14 @@ class Config:
     translation_batch_size: int = 15        # Number of segments per LLM call
 
     # --- TTS ---
-    gemini_tts_model: str = "gemini-2.5-pro-preview-tts"
+    gemini_tts_model: str = "gemini-2.5-flash-preview-tts"
     # Gemini TTS voices (all support Armenian):
     #   Zephyr, Puck, Charon, Kore, Fenrir, Leda, Orus, Aoede,
     #   Callirrhoe, Autonoe, Enceladus, Iapetus, Umbriel, Algieba,
     #   Despina, Erinome, Algenib, Rasalgethi, Laomedeia, Achernar,
     #   Alnilam, Schedar, Gacrux, Pulcherrima, Achird,
     #   Zubenelgenubi, Vindemiatrix, Sadachbia, Sadaltager, Sulafat
-    tts_voice_name: str = "Zephyr"
+    tts_voice_name: str = "Charon"
     tts_speaking_rate: float = 1.0
 
     # --- Whisper (fallback when no YouTube captions) ---

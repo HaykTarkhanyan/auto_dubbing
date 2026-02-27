@@ -62,7 +62,7 @@ def download_video(
                 progress_cb(downloaded / total)
 
     opts = {
-        "format": "bestvideo+bestaudio/best",
+        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
         "outtmpl": output_template,
         "merge_output_format": "mp4",
         "quiet": True,
@@ -97,6 +97,58 @@ def get_video_duration(video_path: str) -> float:
     duration = float(info["format"]["duration"])
     logger.info(f"Actual video duration (ffprobe): {duration:.2f}s")
     return duration
+
+
+def download_thumbnail(url: str, output_path: str) -> str:
+    """Download the highest quality thumbnail for a YouTube video."""
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+
+    video_id = info.get("id", extract_video_id(url))
+
+    # Try thumbnails in quality order (maxresdefault > sddefault > hqdefault)
+    thumbnail_urls = [
+        f"https://img.youtube.com/vi/{video_id}/maxresdefault.jpg",
+        f"https://img.youtube.com/vi/{video_id}/sddefault.jpg",
+        f"https://img.youtube.com/vi/{video_id}/hqdefault.jpg",
+    ]
+
+    # Also check yt-dlp's thumbnail list for original quality
+    thumbnails = info.get("thumbnails", [])
+    if thumbnails:
+        # Sort by preference/resolution (highest last in yt-dlp)
+        best = sorted(thumbnails, key=lambda t: t.get("preference", 0))
+        if best:
+            thumbnail_urls.insert(0, best[-1]["url"])
+
+    import urllib.request
+    output = Path(output_path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+
+    for thumb_url in thumbnail_urls:
+        try:
+            # Determine extension from URL
+            ext = ".jpg"
+            if ".webp" in thumb_url:
+                ext = ".webp"
+            elif ".png" in thumb_url:
+                ext = ".png"
+
+            final_path = output.with_suffix(ext)
+            urllib.request.urlretrieve(thumb_url, str(final_path))
+
+            # Verify it's not a placeholder (YouTube returns a tiny default image for missing thumbs)
+            size = final_path.stat().st_size
+            if size > 10_000:  # Real thumbnails are >10KB
+                logger.info(f"Downloaded thumbnail ({size // 1024}KB): {final_path}")
+                return str(final_path)
+            else:
+                final_path.unlink()
+        except Exception:
+            continue
+
+    raise FileNotFoundError(f"Could not download thumbnail for {video_id}")
 
 
 def extract_audio(video_path: str, output_dir: str) -> str:

@@ -1,0 +1,147 @@
+Video: The Simple Solution to Traffic (Nobody Will Use) (269.7s)
+Segments: 36
+
+--- Segment 1 [0.0s - 12.4s] ---
+  EN: Stuck at an intersection, you always watch unfold the Fundamental Problem of Traffic. On green, the first car accelerates, and then the next, and then the next, and then the next, and then you, only to catch the red.
+  HY: Խաչմերուկում կանգնած՝ միշտ ականատես ես լինում երթևեկության հիմնարար խնդրին։ Կանաչի դեպքում շարժվում է առաջին մեքենան, հետո՝ հաջորդը, հետո՝ մյուսը, հետո՝ էլի մյուսը, հետո՝ դու, ու հենց քո հերթն է հասնում, ընկնում ես կարմիրի տակ։
+
+--- Segment 2 [12.5s - 24.1s] ---
+  EN: Had the cars accelerated simultaneously you would have made it through. Coordination - not cars - is the problem, because we are monkey drivers with slow reaction times and short attention spans.
+  HY: Եթե մեքենաները միաժամանակ շարժվեին, դու կհասցնեիր պլստալ։ Խնդիրը համաձայնեցվածությունն է, ոչ թե մեքենաները, որովհետև մենք կապիկի պես վարորդներ ենք՝ դանդաղ ռեակցիայով ու կարճ ուշադրությամբ։
+
+--- Segment 3 [24.2s - 30.6s] ---
+  EN: Even if we tried getting everyone to press the pedal on 3-2-1-now would be challenging.
+  HY: Նույնիսկ եթե փորձեինք բոլորի հետ պայմանավորվել, որ «երեք-երկու-մեկ-գնացինք» հաշվարկով սեղմեն գազի ոտնակը, դա էլ դժվար կլիներ։
+
+--- Segment 4 [30.7s - 40.6s] ---
+  EN: This dis-coordination limits how many cars can get through an intersection and when one backs up to the next, that's when city-sized gridlock cascades happen, taking forever to clear.
+  HY: Այս անհամաձայնեցվածությունը սահմանափակում է, թե քանի մեքենա կարող է անցնել խաչմերուկով, և երբ մի խաչմերուկի խցանումը հասնում է մյուսին, հենց այդ ժամանակ էլ սկսվում են քաղաքի մասշտաբի կասկադային խցանումները, որոնցից դուրս գալը հավերժություն է տևում։
+
+--- Segment 5 [40.7s - 47.5s] ---
+  EN: In general, more intersections equals more dis-coordination which equals more traffic. This is the motive behind big highways: no intersections.
+  HY: Ընդհանրապես, շատ խաչմերուկներ նշանակում են շատ անհամաձայնեցվածություն, ինչն էլ իր հերթին՝ ավելի շատ խցանումներ։ Սա էլ հենց մեծ մայրուղիներ կառուցելու հիմնական նպատակն է՝ ազատվել խաչմերուկներից։
+
+--- Segment 6 [47.6s - 54.6s] ---
+  EN: Splits and merges, yes. Intersections, no. No stopping, no coordination problems, no traffic Well that's the theory anyway.
+  HY: Ճյուղավորումներ ու միացումներ՝ այո։ Խաչմերուկներ՝ ոչ։ Առանց կանգառների, առանց համաձայնեցման խնդիրների, առանց խցանումների։ Դե, համենայն դեպս, տեսականորեն այդպես է։
+
+--- Segment 7 [54.6s - 62.2s] ---
+  EN: Intersections outside of a highway will back up onto it. Again, because human reaction times limit how many cars can escape the off-ramp when the light changes.
+  HY: Մայրուղուց դուրս գտնվող խաչմերուկների պատճառով խցանումը կհասնի մինչև մայրուղի։ Էլի, որովհետև մարդկային ռեակցիան է սահմանափակում, թե քանի մեքենա կարող է դուրս գալ ելքի թեքահարթակից, երբ լույսը փոխվում է։
+
+--- Segment 8 [62.3s - 68.2s] ---
+  EN: But, even without intersections, there would still be traffic on the highway. Traffic can just appear.
+  HY: Բայց նույնիսկ առանց խաչմերուկների, մայրուղու վրա միևնույն է խցանումներ կլինեին։ Խցանումը կարող է ուղղակի դատարկ տեղն առաջանալ։
+
+--- Segment 9 [68.2s - 85.3s] ---
+  EN: Take a one lane highway with happy cars flowing until a chicken crosses the road. The driver who sees it brakes a little, the driver behind him doesn't notice immediately and brakes a little harder than necessary, the driver behind him does the same until someone comes to a complete stop and, oh look, cars approaching at highway speeds must now stop as well.
+  HY: Վերցնենք միագիծ մայրուղի, որով մեքենաներն իրենց համար հանգիստ գնում են, մինչև որ մի հավ որոշում է անցնել ճանապարհը։ Հավին տեսնող վարորդը մի փոքր արգելակում է, նրա հետևինը միանգամից չի նկատում ու անհրաժեշտից մի քիչ ավելի ուժեղ է սեղմում արգելակը, դրա հետևինն էլ՝ նույնը, մինչև որ մեկը լրիվ կանգ է առնում, ու վերջ՝ մայրուղու արագությամբ մոտեցող մեքենաներն էլ հիմա պետք է կանգնեն։
+
+--- Segment 10 [85.4s - 100.6s] ---
+  EN: Though the chicken is long gone, it left a phantom intersection on the highway. This is what's happened when you're stuck in traffic for hours thinking, "There must be a deadly pile up ahead" and then suddenly, the traffic's over with no wreckage in sight, to your relief if you're a good person and mild annoyance if you aren't.
+  HY: Թեև հավը վաղուց գնացել է, այն իր հետևից մայրուղու վրա թողել է ուրվական-խաչմերուկ։ Սա հենց այն է, ինչ տեղի է ունենում, երբ ժամերով խցանման մեջ մնալով՝ մտածում ես․ «Առջևում երևի սարսափելի վթար է եղել», ու հետո հանկարծ խցանումը վերջանում է, իսկ վթարի ոչ մի հետք չի երևում․ ինչը քեզ թեթևացնում է, եթե լավ մարդ ես, և մի փոքր նյարդայնացնում, եթե՝ ոչ։
+
+--- Segment 11 [100.7s - 107.1s] ---
+  EN: You just pass through a phantom intersection, the cause of which is long gone. And this phantom intersection moves.
+  HY: Դուք ուղղակի անցել եք ուրվական-խաչմերուկով, որի առաջացման պատճառը վաղուց չկա։ Եվ այս ուրվական-խաչմերուկը շարժվում է։
+
+--- Segment 12 [107.1s - 113.5s] ---
+  EN: It's really a traffic snake slithering down the road eating oncoming cars at one end and pooping them out the other.
+  HY: Իրականում դա խցանում-օձ է, որը սողում է ճանապարհով՝ մի ծայրով կուլ տալով մոտեցող մեքենաներին, իսկ մյուսով՝ դուրս նետելով։
+
+--- Segment 13 [113.5s - 121.3s] ---
+  EN: On a ring road, a single car slowing down will start an Ouroboros of traffic that will last forever, even though there's no problem with the road.
+  HY: Օղակաձև ճանապարհի վրա ընդամենը մեկ մեքենայի դանդաղելը կարող է առաջացնել խցանումների շարք, որը կտևի հավերժ, թեև ճանապարհը ոչ մի խնդիր չունի։
+
+--- Segment 14 [121.3s - 126.8s] ---
+  EN: If the drivers could coordinate to accelerate and separate simultaneously, easy driving would return.
+  HY: Եթե վարորդները կարողանային համաձայնեցված գործել՝ միաժամանակ արագանալով ու իրար մեջ տարածություն պահելով, հանգիստ երթևեկությունը կվերականգնվեր։
+
+--- Segment 15 [126.9s - 139.4s] ---
+  EN: But they can't, so traffic eternal. On highways, traffic snakes grow if cars are eaten faster than excreted, and they shrink if excreted faster than eaten, dying when the last car accelerates away before the next car must stop.
+  HY: Բայց նրանք չեն կարող, այդ պատճառով խցանումը հավերժ է։ Մայրուղիների վրա խցանում-օձերը մեծանում են, եթե մեքենաներն ավելի արագ են կուլ գնում, քան դուրս նետվում, և փոքրանում են, եթե ավելի արագ են դուրս նետվում, քան կուլ գնում։ Դրանք վերանում են, երբ վերջին մեքենան հասցնում է արագանալ ու գնալ, մինչև հաջորդը ստիպված կլինի կանգնել։
+
+--- Segment 16 [139.5s - 149.7s] ---
+  EN: Now, in multi-lane highways, there needs be no chicken to start gridlock. A driver crossing lanes quickly with cars too close behind is enough to birth a traffic snake that lives for hours and leagues.
+  HY: Դե հիմա, բազմաշերտ մայրուղիներում խցանում սկսելու համար հավի կարիք չկա։ Ընդամենը մի վարորդ, որը կտրուկ գիծը փոխի, երբ հետևի մեքենաները շատ մոտ են, բավական է, որպեսզի առաջանա «ճանապարհային օձ», որը ժամերով ու կիլոմետրերով ձգվում է։
+
+--- Segment 17 [149.7s - 154.9s] ---
+  EN: It's this quick crossing that causes drivers behind to over-brake and begin a chain reaction.
+  HY: Հենց այս կտրուկ գիծ փոխելն է, որ ստիպում է հետևի վարորդներին կտրուկ արգելակել ու շղթայական ռեակցիա առաջացնել։
+
+--- Segment 18 [154.9s - 165.3s] ---
+  EN: But we *can* make traffic snakes less likely by changing the way we drive. Your goal as a driver is to stay the same distance from the car ahead as from the car behind at all times.
+  HY: Բայց մենք իրոք կարող ենք նվազեցնել ճանապարհային օձերի առաջացումը՝ ուղղակի փոխելով մեր վարելաոճը։ Որպես վարորդ՝ ձեր նպատակը պետք է լինի միշտ նույն հեռավորությունը պահելը թե՛ առջևի, թե՛ հետևի մեքենայից։
+
+--- Segment 19 [165.4s - 173.0s] ---
+  EN: Tailgating is trouble. Not just because it makes accidents more likely but because you as the tailgater can start a traffic snake if the driver ahead brakes.
+  HY: Պոչին նստելը խնդիր ա։ Ոչ միայն որովհետև վթարների հավանականությունն ա մեծացնում, այլ նաև որովհետև դուք՝ պոչին նստած, կարող եք ճանապարհային օձի պատճառ դառնալ, եթե առջևի վարորդը արգելակի։
+
+--- Segment 20 [173.1s - 180.5s] ---
+  EN: Always in the middle! This gives you the most time to prevent over-braking but also gives the driver behind you the most time as well.
+  HY: Միշտ մեջտեղում։ Սա և՛ ձեզ է առավելագույն ժամանակ տալիս կտրուկ արգելակումը կանխելու համար, և՛ ձեր հետևի վարորդին։
+
+--- Segment 21 [180.5s - 186.2s] ---
+  EN: And when stuck in traffic, this rule would get all cars to pull apart the snake faster.
+  HY: Իսկ խցանման մեջ հայտնվելիս այս կանոնը կօգներ, որ բոլոր մեքենաներն ավելի արագ քանդեն այդ օձը։
+
+--- Segment 22 [186.3s - 198.9s] ---
+  EN: That's the simple solution to traffic: getting humans to change their behavior, perhaps by sharing this video to show how and why traffic happens, why tailgaters are trouble, and how we can work together to make the roads better for all.
+  HY: Խցանումների լուծումը պարզ է՝ պետք է մարդիկ փոխեն իրենց վարքը։ Օրինակ՝ կարող են կիսվել այս տեսանյութով, որը ցույց է տալիս, թե ինչպես ու ինչու են խցանումներն առաջանում, ինչու է պոչին նստելը վտանգավոր, և թե ինչպես կարող ենք միասին աշխատել, որ ճանապարհները բոլորի համար ավելի լավը լինեն։
+
+--- Segment 23 [199.0s - 205.7s] ---
+  EN: The End. Except, yeah... wishing upon a star that people are better than they are is a terrible solution.
+  HY: Վերջ։ Բացի նրանից, որ, հա... ուղղակի հույս դնելը, որ մարդիկ ավելի լավը կլինեն, քան իրականում կան, սարսափելի լուծում է։
+
+--- Segment 24 [205.8s - 212.4s] ---
+  EN: Every time. Instead, what works is a structurally systematized solution which is exactly what self-driving cars are.
+  HY: Ամեն անգամ։ Փոխարենը, աշխատում է կառուցվածքային, համակարգված լուծումը, ինչը, ըստ էության, հենց ինքնակառավարվող մեքենաներն են։
+
+--- Segment 25 [212.4s - 217.5s] ---
+  EN: Self-driving cars can just be programmed to stay in the middle and accelerate simultaneously. They'll just do it.
+  HY: Ինքնակառավարվող մեքենաներին կարելի է ուղղակի ծրագրավորել, որ միշտ մեջտեղում մնան և միաժամանակ արագություն հավաքեն։ Նրանք ուղղակի դա կանեն։
+
+--- Segment 26 [217.5s - 225.7s] ---
+  EN: The more self-driving cars at an intersection, the more efficient the intersection gets. A solid lane of self-driving cars vastly increases throughput.
+  HY: Որքան շատ ինքնակառավարվող մեքենաներ լինեն խաչմերուկում, այնքան ավելի արդյունավետ այն կդառնա։ Ինքնակառավարվող մեքենաների հոծ գիծը կտրուկ մեծացնում է անցանելիությունը։
+
+--- Segment 27 [225.7s - 232.2s] ---
+  EN: Hmm, actually! If you ban humans from the road (which we should totally do anyway) you can get rid of the intersection entirely.
+  HY: Հմմ, իսկ իրականում, եթե մարդկանց արգելվի մեքենա վարել (ինչը, իմիջիայլոց, հաստատ պետք է անել), կարելի է ընդհանրապես ազատվել խաչմերուկներից։
+
+--- Segment 28 [232.3s - 239.5s] ---
+  EN: After all, a traffic light is just a tool for drivers on one road to communicate with drivers on another, poorly and coarsely.
+  HY: Ի վերջո, լուսացույցն ընդամենը գործիք է, որով մի ճանապարհի վարորդները մյուսի վարորդների հետ հաղորդակցվում են՝ վատ ու պարզունակ ձևով։
+
+--- Segment 29 [239.6s - 247.3s] ---
+  EN: Red equals "Don't go now, we are coming through the intersection." Green equals "good to go." But self-driving cars can talk to each other at the speed of light.
+  HY: Կարմիրը նշանակում է՝ «Հիմա մի՛ գնա, մենք ենք անցնում խաչմերուկով»։ Կանաչը՝ «Կարելի է գնալ»։ Բայց ինքնակառավարվող մեքենաները կարող են իրար հետ խոսել լույսի արագությամբ։
+
+--- Segment 30 [247.4s - 254.6s] ---
+  EN: with that kind of coordination, no traffic light necessary. Just as with the highway, the best intersection is no intersection.
+  HY: Այդպիսի համակարգման պայմաններում լուսացույցի կարիք ուղղակի չի լինի։ Ինչպես մայրուղու դեպքում, այնպես էլ այստեղ՝ լավագույն խաչմերուկը բացակայող խաչմերուկն է։
+
+--- Segment 31 [254.7s - 263.2s] ---
+  EN: Humans will never drive this precisely. At the intersection, the fundamental problem with traffic that you watch unfold, as well as everything, is people.
+  HY: Մարդիկ երբեք այսքան ճշգրիտ չեն վարի։ Խաչմերուկում խցանումների, և ընդհանրապես ամեն ինչի, հիմնական խնդիրը, որի ականատեսն եք լինում, մարդիկ են։
+
+--- Segment 32 [263.3s - 270.1s] ---
+  EN: So the real simple solution to traffic: is no more monkeys driving cars.
+  HY: Ուրեմն, խցանումների իսկապես պարզ լուծումը հետևյալն է՝ այլևս ոչ մի կապիկ ղեկին։
+
+--- Segment 33 [270.3s - 277.2s] ---
+  EN: This video has been brought to you in part by Audible.com, with over 180,000 audiobooks and spoken audio products.
+  HY: Այս տեսանյութը մասամբ ստեղծվել է Audible.com-ի աջակցությամբ, որտեղ առկա է ավելի քան 180,000 աուդիոգիրք և ձայնային այլ նյութեր։
+
+--- Segment 34 [277.3s - 292.5s] ---
+  EN: Get a free trial today by going to audible.com/grey If you like thinking about how the future can be better, why not read the Elon Musk biography: "Tesla, SpaceX, and the Quest for a Fantastic Future" by Ashlee Vance is available at Audible.
+  HY: Ստացե՛ք անվճար փորձաշրջան այսօր՝ այցելելով audible.com/grey։ Եթե սիրում եք մտածել, թե ինչպես կարելի է ապագան ավելի լավը դարձնել, ապա ինչո՞ւ չլսել Էշլի Վենսի հեղինակած Իլոն Մասկի կենսագրությունը՝ «Թեսլա, ՍփեյսԷքս և ֆանտաստիկ ապագայի որոնումները», որը հասանելի է Audible-ում։
+
+--- Segment 35 [292.5s - 302.8s] ---
+  EN: Give it a listen with your free 30-day trial that you can get at audible.com/grey Audible is the place I go to for all of my audio books, and you should too.
+  HY: Լսե՛ք այն ձեր անվճար 30-օրյա փորձաշրջանի շրջանակներում, որը կարող եք ստանալ audible.com/grey կայքում։ Ես իմ բոլոր աուդիոգրքերը հենց Audible-ից եմ լսում, և ձեզ էլ եմ խորհուրդ տալիս։
+
+--- Segment 36 [302.8s - 308.8s] ---
+  EN: It's a near endless universe of interesting things to listen to. Give them a try and thanks to Audible for supporting the channel.
+  HY: Դա լսելու համար հետաքրքիր բաների գրեթե անսահման տիեզերք է։ Փորձե՛ք և շնորհակալություն Audible-ին՝ ալիքին աջակցելու համար։
+

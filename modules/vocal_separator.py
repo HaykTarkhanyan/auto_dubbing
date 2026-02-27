@@ -156,7 +156,10 @@ def separate_vocals_lalal(audio_path: str, output_dir: str, api_key: str) -> str
         logger.info(f"LALAL.AI check response: {check_result}")
 
         # Handle different response formats
-        if isinstance(check_result, dict) and "tasks" in check_result:
+        # API returns: {"result": {"<task_id>": {..., "status": "progress"|"success"|"error", ...}}}
+        if isinstance(check_result, dict) and "result" in check_result:
+            task = check_result["result"].get(task_id, {})
+        elif isinstance(check_result, dict) and "tasks" in check_result:
             task = check_result["tasks"].get(task_id, {})
         elif isinstance(check_result, dict):
             task = check_result
@@ -177,7 +180,9 @@ def separate_vocals_lalal(audio_path: str, output_dir: str, api_key: str) -> str
         raise RuntimeError(f"LALAL.AI separation timed out after {max_wait}s")
 
     # Step 4: Find and download the instrumental (back) track
-    tracks = task.get("tracks", [])
+    # Tracks may be at task["result"]["tracks"] or task["tracks"]
+    task_result = task.get("result", task)
+    tracks = task_result.get("tracks", [])
     # tracks could be a list or a dict
     if isinstance(tracks, dict):
         tracks = list(tracks.values())
