@@ -10,6 +10,7 @@ class Config:
     # --- API Keys (loaded from .env) ---
     anthropic_api_key: str = ""
     google_api_key: str = ""
+    lalal_api_key: str = ""
 
     # --- Translation ---
     translation_provider: str = "gemini"    # Options: "gemini", "claude"
@@ -38,6 +39,7 @@ class Config:
     speed_max: float = 1.35     # Max TTS speedup (above this, slow down video)
     fade_ms: int = 50           # Crossfade duration in ms to prevent clicks
     keep_background_music: bool = True  # Preserve background music via vocal separation
+    vocal_separator: str = "lalal"     # Options: "demucs", "mdx", "lalal" (LALAL.AI API)
     background_volume_db: float = -3.0  # Volume adjustment for background music (dB)
 
     # --- Transcript segmentation ---
@@ -53,6 +55,7 @@ class Config:
         return cls(
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             google_api_key=os.getenv("GOOGLE_API_KEY", ""),
+            lalal_api_key=os.getenv("LALAL_API_KEY", ""),
         )
 
     def validate(self) -> list[str]:
@@ -63,4 +66,6 @@ class Config:
             errors.append("GOOGLE_API_KEY is required when using Gemini for translation")
         if not self.google_api_key:
             errors.append("GOOGLE_API_KEY is required for Gemini TTS")
+        if self.vocal_separator == "lalal" and not self.lalal_api_key:
+            errors.append("LALAL_API_KEY is required when using LALAL.AI for vocal separation")
         return errors

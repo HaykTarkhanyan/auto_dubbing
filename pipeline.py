@@ -336,8 +336,12 @@ def run_pipeline_phase2(
                     if cache:
                         cache.put_audio(audio_path)
 
-                demucs_dir = str(temp.subdirectory("demucs"))
-                background_audio_path = separate_vocals(audio_path, demucs_dir)
+                separator_dir = str(temp.subdirectory("separator"))
+                background_audio_path = separate_vocals(
+                    audio_path, separator_dir,
+                    method=config.vocal_separator,
+                    api_key=config.lalal_api_key,
+                )
                 if cache:
                     background_audio_path = cache.put_background(background_audio_path)
         else:
