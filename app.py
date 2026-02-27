@@ -1,15 +1,21 @@
 import logging
-import os
+import io
+import sys
 import shutil
 import gradio as gr
 
 from config import Config
 from pipeline import run_pipeline
 
+# Fix Windows console encoding for Armenian text
+if sys.platform == "win32":
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
+
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 
 # Console handler
-console_handler = logging.StreamHandler()
+console_handler = logging.StreamHandler(sys.stdout)
 console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 
@@ -19,6 +25,10 @@ file_handler.setLevel(logging.DEBUG)
 file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
 
 logging.basicConfig(level=logging.DEBUG, handlers=[console_handler, file_handler])
+
+# Suppress noisy third-party loggers
+for _name in ("httpcore", "httpx", "google_genai", "urllib3"):
+    logging.getLogger(_name).setLevel(logging.WARNING)
 
 
 def check_ffmpeg() -> bool:
@@ -74,10 +84,19 @@ def run_dubbing(
         time_str = f"{orig.start:.1f}s"
         table_data.append([time_str, orig.text, trans.text])
 
+    # Build cost info
+    cost = result.cost_tracker
+    cost_text = (
+        f"Dubbed: **{result.metadata.title}** ({result.metadata.duration:.0f}s)\n\n"
+        f"**API Costs:** Translation: ${cost.translation_cost:.4f} | "
+        f"TTS: ${cost.tts_cost:.4f} ({cost.tts_calls} calls) | "
+        f"**Total: ${cost.total_cost:.4f}**"
+    )
+
     return (
         result.output_video_path,
         table_data,
-        f"Dubbed: **{result.metadata.title}** ({result.metadata.duration:.0f}s)",
+        cost_text,
         gr.update(visible=True, value=result.output_video_path),
     )
 
@@ -96,8 +115,8 @@ def build_ui() -> gr.Blocks:
 
                 with gr.Accordion("Translation Settings", open=True):
                     translation_provider = gr.Radio(
-                        choices=["Claude Sonnet", "Gemini Pro"],
-                        value="Claude Sonnet",
+                        choices=["Gemini Pro", "Claude Sonnet"],
+                        value="Gemini Pro",
                         label="Translation Model",
                     )
 
@@ -115,7 +134,7 @@ def build_ui() -> gr.Blocks:
                     speed_max = gr.Slider(
                         minimum=1.0,
                         maximum=2.0,
-                        value=1.35,
+                        value=1.5,
                         step=0.05,
                         label="Max Speed Factor",
                     )

@@ -7,39 +7,42 @@ load_dotenv()
 
 @dataclass
 class Config:
-    # API Keys
+    # --- API Keys (loaded from .env) ---
     anthropic_api_key: str = ""
     google_api_key: str = ""
 
-    # Translation settings
-    translation_provider: str = "claude"  # "claude" or "gemini"
+    # --- Translation ---
+    translation_provider: str = "gemini"  # "gemini" or "claude"
     claude_model: str = "claude-sonnet-4-20250514"
     gemini_model: str = "gemini-2.5-pro"
+    translation_batch_size: int = 15
 
-    # TTS settings
+    # --- TTS ---
     tts_provider: str = "gemini"  # "gemini" or "edge_tts"
-    tts_voice_name: str = "Kore"  # Gemini voice name
+    gemini_tts_model: str = "gemini-2.5-flash-preview-tts"
+    tts_voice_name: str = "Kore"
     tts_speaking_rate: float = 1.0
 
-    # Whisper settings
+    # --- Whisper (fallback transcription) ---
     whisper_model_size: str = "base"
 
-    # Processing
-    temp_dir: str = ""
+    # --- Audio sync ---
     speed_min: float = 0.75
     speed_max: float = 1.35
+    fade_ms: int = 50
+
+    # --- Transcript segmentation ---
+    segment_min_duration: float = 5.0
+    segment_max_duration: float = 30.0
+
+    # --- Processing ---
+    temp_dir: str = ""
 
     @classmethod
     def from_env(cls) -> "Config":
         return cls(
             anthropic_api_key=os.getenv("ANTHROPIC_API_KEY", ""),
             google_api_key=os.getenv("GOOGLE_API_KEY", ""),
-            translation_provider=os.getenv("TRANSLATION_PROVIDER", "claude"),
-            tts_provider=os.getenv("TTS_PROVIDER", "gemini"),
-            tts_voice_name=os.getenv("TTS_VOICE_NAME", "Kore"),
-            whisper_model_size=os.getenv("WHISPER_MODEL_SIZE", "base"),
-            speed_max=float(os.getenv("MAX_SPEED_FACTOR", "1.35")),
-            speed_min=float(os.getenv("MIN_SPEED_FACTOR", "0.75")),
         )
 
     def validate(self) -> list[str]:

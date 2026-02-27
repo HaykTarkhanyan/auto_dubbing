@@ -8,6 +8,7 @@ from google import genai
 
 from config import Config
 from modules.transcript import TranscriptSegment
+from utils.cost_tracker import CostTracker
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +33,6 @@ def _build_translation_prompt(texts: list[str]) -> str:
 
 
 def _parse_translations(response_text: str, expected_count: int) -> list[str]:
-    # Strip markdown code fences if present
     text = response_text.strip()
     if text.startswith("```"):
         lines = text.split("\n")
@@ -50,45 +50,51 @@ def _parse_translations(response_text: str, expected_count: int) -> list[str]:
 def translate_segments_claude(
     segments: list[TranscriptSegment],
     config: Config,
+    cost_tracker: CostTracker | None = None,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TranscriptSegment]:
     client = anthropic.Anthropic(api_key=config.anthropic_api_key)
-    return _translate_batched(
-        segments=segments,
-        call_fn=lambda prompt: _call_claude(client, config.claude_model, prompt),
-        progress_cb=progress_cb,
-    )
 
+    def call_fn(prompt: str) -> str:
+        response = client.messages.create(
+            model=config.claude_model,
+            max_tokens=4096,
+            system=TRANSLATION_SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        if cost_tracker:
+            cost_tracker.add_translation_usage(
+                config.claude_model,
+                response.usage.input_tokens,
+                response.usage.output_tokens,
+            )
+        return response.content[0].text
 
-def _call_claude(client: anthropic.Anthropic, model: str, prompt: str) -> str:
-    response = client.messages.create(
-        model=model,
-        max_tokens=4096,
-        system=TRANSLATION_SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.content[0].text
+    return _translate_batched(segments, call_fn, progress_cb)
 
 
 def translate_segments_gemini(
     segments: list[TranscriptSegment],
     config: Config,
+    cost_tracker: CostTracker | None = None,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TranscriptSegment]:
     client = genai.Client(api_key=config.google_api_key)
-    return _translate_batched(
-        segments=segments,
-        call_fn=lambda prompt: _call_gemini(client, config.gemini_model, prompt),
-        progress_cb=progress_cb,
-    )
 
+    def call_fn(prompt: str) -> str:
+        response = client.models.generate_content(
+            model=config.gemini_model,
+            contents=f"{TRANSLATION_SYSTEM_PROMPT}\n\n{prompt}",
+        )
+        if cost_tracker and response.usage_metadata:
+            cost_tracker.add_translation_usage(
+                config.gemini_model,
+                response.usage_metadata.prompt_token_count or 0,
+                response.usage_metadata.candidates_token_count or 0,
+            )
+        return response.text
 
-def _call_gemini(client: genai.Client, model: str, prompt: str) -> str:
-    response = client.models.generate_content(
-        model=model,
-        contents=f"{TRANSLATION_SYSTEM_PROMPT}\n\n{prompt}",
-    )
-    return response.text
+    return _translate_batched(segments, call_fn, progress_cb)
 
 
 def _translate_batched(
@@ -151,8 +157,9 @@ def _translate_with_retry(
 def translate_segments(
     segments: list[TranscriptSegment],
     config: Config,
+    cost_tracker: CostTracker | None = None,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TranscriptSegment]:
     if config.translation_provider == "gemini":
-        return translate_segments_gemini(segments, config, progress_cb)
-    return translate_segments_claude(segments, config, progress_cb)
+        return translate_segments_gemini(segments, config, cost_tracker, progress_cb)
+    return translate_segments_claude(segments, config, cost_tracker, progress_cb)

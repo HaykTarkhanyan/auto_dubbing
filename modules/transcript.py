@@ -1,9 +1,13 @@
+import logging
+import re
 from dataclasses import dataclass
 from typing import Callable
 
 from youtube_transcript_api import YouTubeTranscriptApi
 
-from utils.text_utils import clean_caption_text, split_at_sentence
+from utils.text_utils import clean_caption_text
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -56,15 +60,107 @@ def get_whisper_transcript(audio_path: str, model_size: str = "base") -> list[Tr
     return segments
 
 
-def merge_short_segments(
-    segments: list[TranscriptSegment],
+def resegment_by_sentences(
+    raw_segments: list[TranscriptSegment],
     min_duration: float = 5.0,
     max_duration: float = 30.0,
 ) -> list[TranscriptSegment]:
+    """Merge all captions into full text, then re-split at sentence boundaries
+    with timestamps interpolated from the original caption timing."""
+    if not raw_segments:
+        return []
+
+    # Step 1: Build a character-position → timestamp map
+    # Each raw segment contributes its text at a known start time.
+    # We interpolate: each character within a segment gets a proportional time.
+    char_timestamps: list[tuple[int, float]] = []  # (char_position, time)
+    full_text_parts: list[str] = []
+    char_offset = 0
+
+    for seg in raw_segments:
+        # Mark the start of this segment's text
+        char_timestamps.append((char_offset, seg.start))
+        full_text_parts.append(seg.text)
+        char_offset += len(seg.text) + 1  # +1 for the space we'll join with
+
+    # Mark the end
+    last_seg = raw_segments[-1]
+    char_timestamps.append((char_offset, last_seg.end))
+
+    full_text = " ".join(full_text_parts)
+
+    # Step 2: Split full text at sentence boundaries
+    sentences = _split_sentences(full_text)
+    if not sentences:
+        return raw_segments
+
+    logger.info(f"Re-segmented {len(raw_segments)} raw captions into {len(sentences)} sentences")
+
+    # Step 3: Map each sentence back to a timestamp
+    result: list[TranscriptSegment] = []
+    current_char_pos = 0
+
+    for i, sentence in enumerate(sentences):
+        # Find this sentence's position in the full text
+        sent_start_char = full_text.find(sentence, current_char_pos)
+        if sent_start_char == -1:
+            sent_start_char = current_char_pos
+        sent_end_char = sent_start_char + len(sentence)
+        current_char_pos = sent_end_char
+
+        # Interpolate timestamp from character position
+        start_time = _interpolate_time(sent_start_char, char_timestamps)
+        end_time = _interpolate_time(sent_end_char, char_timestamps)
+
+        result.append(TranscriptSegment(
+            text=sentence.strip(),
+            start=start_time,
+            duration=max(end_time - start_time, 0.1),
+        ))
+
+    # Step 4: Merge short sentences, split long ones
+    result = _enforce_duration_bounds(result, min_duration, max_duration)
+
+    for seg in result:
+        logger.debug(f"  [{seg.start:.1f}s - {seg.end:.1f}s] {seg.text[:80]}")
+
+    return result
+
+
+def _split_sentences(text: str) -> list[str]:
+    """Split text at sentence-ending punctuation (.!?) followed by a space."""
+    # Split at . ! ? followed by space or end of string
+    parts = re.split(r'(?<=[.!?])\s+', text)
+    # Filter out empty strings
+    return [p.strip() for p in parts if p.strip()]
+
+
+def _interpolate_time(char_pos: int, char_timestamps: list[tuple[int, float]]) -> float:
+    """Given a character position, interpolate its timestamp from the mapping."""
+    # Find the two surrounding anchor points
+    for i in range(len(char_timestamps) - 1):
+        pos_a, time_a = char_timestamps[i]
+        pos_b, time_b = char_timestamps[i + 1]
+        if pos_a <= char_pos <= pos_b:
+            if pos_b == pos_a:
+                return time_a
+            fraction = (char_pos - pos_a) / (pos_b - pos_a)
+            return time_a + fraction * (time_b - time_a)
+
+    # Past the end — return last timestamp
+    return char_timestamps[-1][1]
+
+
+def _enforce_duration_bounds(
+    segments: list[TranscriptSegment],
+    min_duration: float,
+    max_duration: float,
+) -> list[TranscriptSegment]:
+    """Merge segments that are too short, split ones that are too long."""
     if not segments:
         return []
 
-    # Pass 1: merge short segments with their next neighbor
+    # Pass 1: merge short segments with next neighbor
     merged: list[TranscriptSegment] = []
     i = 0
     while i < len(segments):
@@ -80,29 +176,48 @@ def merge_short_segments(
         merged.append(current)
         i += 1
 
-    # Pass 2: split long segments at sentence boundaries
+    # Pass 2: split segments that are too long at comma/semicolon boundaries
     result: list[TranscriptSegment] = []
     for seg in merged:
         if seg.duration <= max_duration:
             result.append(seg)
             continue
 
-        chunks = split_at_sentence(seg.text)
-        if len(chunks) <= 1:
+        # Try splitting at commas or semicolons
+        parts = re.split(r'(?<=[,;])\s+', seg.text)
+        if len(parts) <= 1:
             result.append(seg)
             continue
 
-        # Distribute duration proportionally by text length
-        total_chars = sum(len(c) for c in chunks)
+        # Group parts so each chunk is under max_duration
+        total_chars = sum(len(p) for p in parts)
         offset = seg.start
-        for chunk in chunks:
-            chunk_duration = seg.duration * (len(chunk) / total_chars)
+        chunk_texts: list[str] = []
+        chunk_start = seg.start
+
+        for part in parts:
+            part_duration = seg.duration * (len(part) / total_chars)
+            projected_end = offset + part_duration
+
+            if chunk_texts and (projected_end - chunk_start) > max_duration:
+                # Flush current chunk
+                result.append(TranscriptSegment(
+                    text=" ".join(chunk_texts),
+                    start=chunk_start,
+                    duration=offset - chunk_start,
+                ))
+                chunk_texts = []
+                chunk_start = offset
+
+            chunk_texts.append(part)
+            offset += part_duration
+
+        if chunk_texts:
             result.append(TranscriptSegment(
-                text=chunk,
-                start=offset,
-                duration=chunk_duration,
+                text=" ".join(chunk_texts),
+                start=chunk_start,
+                duration=seg.end - chunk_start,
             ))
-            offset += chunk_duration
 
     return result
 
@@ -117,11 +232,11 @@ def extract_transcript(
         progress_cb(0.1)
 
     # Try YouTube captions first
-    segments = get_youtube_transcript(video_id)
-    if segments:
+    raw_segments = get_youtube_transcript(video_id)
+    if raw_segments:
         if progress_cb:
-            progress_cb(0.8)
-        segments = merge_short_segments(segments)
+            progress_cb(0.5)
+        segments = resegment_by_sentences(raw_segments)
         if progress_cb:
             progress_cb(1.0)
         return segments
@@ -133,11 +248,11 @@ def extract_transcript(
     if progress_cb:
         progress_cb(0.2)
 
-    segments = get_whisper_transcript(audio_path, model_size=whisper_model_size)
+    raw_segments = get_whisper_transcript(audio_path, model_size=whisper_model_size)
     if progress_cb:
-        progress_cb(0.9)
+        progress_cb(0.8)
 
-    segments = merge_short_segments(segments)
+    segments = resegment_by_sentences(raw_segments)
     if progress_cb:
         progress_cb(1.0)
 

@@ -1,3 +1,5 @@
+import json
+import logging
 import subprocess
 import re
 from dataclasses import dataclass
@@ -5,6 +7,8 @@ from pathlib import Path
 from typing import Callable
 
 import yt_dlp
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -20,6 +24,7 @@ def extract_video_id(url: str) -> str:
     patterns = [
         r"(?:v=|/v/|youtu\.be/)([a-zA-Z0-9_-]{11})",
         r"(?:embed/)([a-zA-Z0-9_-]{11})",
+        r"(?:shorts/)([a-zA-Z0-9_-]{11})",
     ]
     for pattern in patterns:
         match = re.search(pattern, url)
@@ -77,6 +82,21 @@ def download_video(
             if f.suffix in (".mp4", ".mkv", ".webm"):
                 return str(f)
         raise FileNotFoundError(f"Downloaded video not found in {output_dir}")
+
+
+def get_video_duration(video_path: str) -> float:
+    """Get exact video duration via ffprobe."""
+    cmd = [
+        "ffprobe", "-v", "quiet",
+        "-print_format", "json",
+        "-show_format",
+        video_path,
+    ]
+    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    info = json.loads(result.stdout)
+    duration = float(info["format"]["duration"])
+    logger.info(f"Actual video duration (ffprobe): {duration:.2f}s")
+    return duration
 
 
 def extract_audio(video_path: str, output_dir: str) -> str:

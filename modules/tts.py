@@ -9,19 +9,9 @@ from pydub import AudioSegment
 
 from config import Config
 from modules.transcript import TranscriptSegment
+from utils.cost_tracker import CostTracker
 
 logger = logging.getLogger(__name__)
-
-GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts"
-
-# Available Gemini TTS voices
-GEMINI_VOICES = [
-    "Zephyr", "Puck", "Charon", "Kore", "Fenrir", "Leda", "Orus", "Aoede",
-    "Callirrhoe", "Autonoe", "Enceladus", "Iapetus", "Umbriel", "Algieba",
-    "Despina", "Erinome", "Algenib", "Rasalgethi", "Laomedeia", "Achernar",
-    "Alnilam", "Schedar", "Gacrux", "Pulcherrima", "Achird",
-    "Zubenelgenubi", "Vindemiatrix", "Sadachbia", "Sadaltager", "Sulafat",
-]
 
 
 @dataclass
@@ -50,14 +40,19 @@ def _get_gemini_client(api_key: str):
     return _gemini_client
 
 
-def synthesize_gemini(text: str, output_path: str, config: Config) -> float:
+def synthesize_gemini(
+    text: str,
+    output_path: str,
+    config: Config,
+    cost_tracker: CostTracker | None = None,
+) -> float:
     from google.genai import types
 
     client = _get_gemini_client(config.google_api_key)
     voice_name = config.tts_voice_name or "Kore"
 
     response = client.models.generate_content(
-        model=GEMINI_TTS_MODEL,
+        model=config.gemini_tts_model,
         contents=text,
         config=types.GenerateContentConfig(
             response_modalities=["AUDIO"],
@@ -70,6 +65,12 @@ def synthesize_gemini(text: str, output_path: str, config: Config) -> float:
             ),
         ),
     )
+
+    if cost_tracker and response.usage_metadata:
+        cost_tracker.add_tts_usage(
+            response.usage_metadata.prompt_token_count or 0,
+            response.usage_metadata.candidates_token_count or 0,
+        )
 
     try:
         pcm_data = response.candidates[0].content.parts[0].inline_data.data
@@ -85,19 +86,25 @@ def synthesize_gemini(text: str, output_path: str, config: Config) -> float:
     return len(audio) / 1000.0
 
 
-def _synthesize_single(text: str, output_path: str, config: Config) -> float:
+def _synthesize_single(
+    text: str,
+    output_path: str,
+    config: Config,
+    cost_tracker: CostTracker | None = None,
+) -> float:
     if not text.strip():
         silence = AudioSegment.silent(duration=100)
         silence.export(output_path, format="wav")
         return 0.1
 
-    return synthesize_gemini(text, output_path, config)
+    return synthesize_gemini(text, output_path, config, cost_tracker)
 
 
 def synthesize_all_segments(
     segments: list[TranscriptSegment],
     output_dir: str,
     config: Config,
+    cost_tracker: CostTracker | None = None,
     progress_cb: Callable[[float], None] | None = None,
 ) -> list[TTSResult]:
     results: list[TTSResult] = []
@@ -109,12 +116,12 @@ def synthesize_all_segments(
         logger.info(f"TTS {i+1}/{len(segments)}: {segment.text[:80]}...")
 
         try:
-            duration = _synthesize_single(segment.text, audio_path, config)
+            duration = _synthesize_single(segment.text, audio_path, config, cost_tracker)
         except Exception as e:
             if "429" in str(e) or "RESOURCE_EXHAUSTED" in str(e):
                 logger.warning(f"Rate limited on segment {i}, waiting 60s...")
                 time.sleep(60)
-                duration = _synthesize_single(segment.text, audio_path, config)
+                duration = _synthesize_single(segment.text, audio_path, config, cost_tracker)
             else:
                 raise
 
