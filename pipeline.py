@@ -9,7 +9,7 @@ from typing import Callable
 
 from config import Config
 from modules.cache import PipelineCache
-from modules.downloader import get_metadata, download_video, extract_audio, get_video_duration, VideoMetadata
+from modules.downloader import get_metadata, download_video, extract_audio, get_video_duration, download_thumbnail, VideoMetadata
 from modules.transcript import TranscriptSegment, extract_transcript
 from modules.translator import translate_segments
 from modules.tts import TTSResult, synthesize_all_segments
@@ -114,6 +114,21 @@ def _save_artifacts(
     # Save background music if available
     if background_audio_path and Path(background_audio_path).exists():
         shutil.copy2(background_audio_path, str(video_dir / "background_music.wav"))
+
+    # Download thumbnail
+    try:
+        video_url = f"https://www.youtube.com/watch?v={metadata.video_id}"
+        download_thumbnail(video_url, str(video_dir / "thumbnail"))
+    except Exception as e:
+        logger.warning(f"Failed to download thumbnail: {e}")
+
+    # Save video info text file
+    with open(video_dir / "video_info.txt", "w", encoding="utf-8") as f:
+        f.write(f"Title: {metadata.title}\n")
+        f.write(f"Channel: {metadata.uploader}\n")
+        f.write(f"Channel URL: {metadata.channel_url}\n")
+        f.write(f"Video URL: https://www.youtube.com/watch?v={metadata.video_id}\n")
+        f.write(f"\n--- Description ---\n{metadata.description}\n")
 
     logger.info(f"Saved all artifacts to {video_dir}")
     return final_video_path

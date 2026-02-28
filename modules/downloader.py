@@ -18,6 +18,7 @@ class VideoMetadata:
     video_id: str
     uploader: str
     description: str
+    channel_url: str = ""
 
 
 def extract_video_id(url: str) -> str:
@@ -44,6 +45,7 @@ def get_metadata(url: str) -> VideoMetadata:
         video_id=info.get("id", extract_video_id(url)),
         uploader=info.get("uploader", "Unknown"),
         description=info.get("description", ""),
+        channel_url=info.get("channel_url", ""),
     )
 
 
