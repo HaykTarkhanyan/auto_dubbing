@@ -104,6 +104,7 @@ def resegment_by_sentences(
         # Find this sentence's position in the full text
         sent_start_char = full_text.find(sentence, current_char_pos)
         if sent_start_char == -1:
+            logger.warning(f"Could not locate sentence in full text at pos {current_char_pos}, using fallback position")
             sent_start_char = current_char_pos
         sent_end_char = sent_start_char + len(sentence)
         current_char_pos = sent_end_char

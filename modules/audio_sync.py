@@ -233,17 +233,24 @@ def create_dubbed_audio(
     background_audio_path: str | None = None,
 ) -> tuple[str, list[TimeRegion], float]:
     """Create dubbed audio and return (path, time_regions, new_total_duration)."""
-    # Clamp segments that extend beyond the actual video duration
+    # Clamp segments that extend beyond the actual video duration (without mutating inputs)
+    clamped_segments: list[TranscriptSegment] = []
     for seg in original_segments:
+        if seg.start >= total_duration:
+            logger.warning(f"Segment starts at {seg.start:.2f}s, past video end {total_duration:.2f}s — skipping")
+            continue
         if seg.end > total_duration:
             logger.info(f"Clamping segment end {seg.end:.2f}s -> {total_duration:.2f}s (video duration)")
-            seg.duration = total_duration - seg.start
-        if seg.start >= total_duration:
-            logger.warning(f"Segment starts at {seg.start:.2f}s, past video end {total_duration:.2f}s")
+            clamped_segments.append(TranscriptSegment(
+                text=seg.text, start=seg.start,
+                duration=total_duration - seg.start,
+            ))
+        else:
+            clamped_segments.append(seg)
 
     aligned: list[AlignedSegment] = []
 
-    for i, (tts_result, orig_seg) in enumerate(zip(tts_results, original_segments)):
+    for i, (tts_result, orig_seg) in enumerate(zip(tts_results, clamped_segments)):
         aligned_seg = align_segment(tts_result, orig_seg, config)
         aligned.append(aligned_seg)
         if progress_cb:

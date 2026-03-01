@@ -1,7 +1,9 @@
 import json
 import logging
+import shutil
 import subprocess
 import re
+import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Callable
@@ -9,6 +11,13 @@ from typing import Callable
 import yt_dlp
 
 logger = logging.getLogger(__name__)
+
+
+def _download_file(url: str, dest: str, timeout: int = 60):
+    """Download a URL to a local file with a timeout."""
+    with urllib.request.urlopen(url, timeout=timeout) as resp:
+        with open(dest, "wb") as f:
+            shutil.copyfileobj(resp, f)
 
 
 @dataclass
@@ -88,17 +97,48 @@ def download_video(
 
 def get_video_duration(video_path: str) -> float:
     """Get exact video duration via ffprobe."""
+    info = _ffprobe_json(video_path, show_streams=False)
+    duration = float(info["format"]["duration"])
+    logger.info(f"Actual video duration (ffprobe): {duration:.2f}s")
+    return duration
+
+
+@dataclass
+class VideoFileInfo:
+    width: int
+    height: int
+    file_size_bytes: int
+
+
+def get_video_file_info(video_path: str) -> VideoFileInfo:
+    """Get resolution and file size of a video file."""
+    info = _ffprobe_json(video_path, show_streams=True)
+    width = 0
+    height = 0
+    for stream in info.get("streams", []):
+        if stream.get("codec_type") == "video":
+            width = int(stream.get("width", 0))
+            height = int(stream.get("height", 0))
+            break
+    file_size = Path(video_path).stat().st_size
+    return VideoFileInfo(width=width, height=height, file_size_bytes=file_size)
+
+
+def _ffprobe_json(video_path: str, show_streams: bool = False) -> dict:
+    """Run ffprobe and return parsed JSON."""
     cmd = [
         "ffprobe", "-v", "quiet",
         "-print_format", "json",
         "-show_format",
-        video_path,
     ]
-    result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-    info = json.loads(result.stdout)
-    duration = float(info["format"]["duration"])
-    logger.info(f"Actual video duration (ffprobe): {duration:.2f}s")
-    return duration
+    if show_streams:
+        cmd.append("-show_streams")
+    cmd.append(video_path)
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"ffprobe failed for {video_path}: {e.stderr}") from e
+    return json.loads(result.stdout)
 
 
 def download_thumbnail(url: str, output_path: str) -> str:
@@ -124,7 +164,6 @@ def download_thumbnail(url: str, output_path: str) -> str:
         if best:
             thumbnail_urls.insert(0, best[-1]["url"])
 
-    import urllib.request
     output = Path(output_path)
     output.parent.mkdir(parents=True, exist_ok=True)
 
@@ -138,7 +177,7 @@ def download_thumbnail(url: str, output_path: str) -> str:
                 ext = ".png"
 
             final_path = output.with_suffix(ext)
-            urllib.request.urlretrieve(thumb_url, str(final_path))
+            _download_file(thumb_url, str(final_path), timeout=30)
 
             # Verify it's not a placeholder (YouTube returns a tiny default image for missing thumbs)
             size = final_path.stat().st_size

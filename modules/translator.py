@@ -65,6 +65,8 @@ def translate_segments_claude(
                 response.usage.input_tokens,
                 response.usage.output_tokens,
             )
+        if not response.content:
+            raise RuntimeError("Claude returned empty response")
         return response.content[0].text
 
     return _translate_batched(segments, call_fn, config.translation_batch_size, progress_cb)

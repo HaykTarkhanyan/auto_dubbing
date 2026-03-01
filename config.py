@@ -58,14 +58,23 @@ class Config:
             lalal_api_key=os.getenv("LALAL_API_KEY", ""),
         )
 
+    def __repr__(self) -> str:
+        fields = []
+        for name in self.__dataclass_fields__:
+            val = getattr(self, name)
+            if "api_key" in name and val:
+                val = val[:4] + "..." + val[-4:] if len(val) > 8 else "***"
+            fields.append(f"{name}={val!r}")
+        return f"Config({', '.join(fields)})"
+
     def validate(self) -> list[str]:
         errors = []
         if self.translation_provider == "claude" and not self.anthropic_api_key:
-            errors.append("ANTHROPIC_API_KEY is required when using Claude for translation")
+            errors.append("ANTHROPIC_API_KEY is required when using Claude — set it in your .env file")
         if self.translation_provider == "gemini" and not self.google_api_key:
-            errors.append("GOOGLE_API_KEY is required when using Gemini for translation")
+            errors.append("GOOGLE_API_KEY is required when using Gemini — set it in your .env file")
         if not self.google_api_key:
-            errors.append("GOOGLE_API_KEY is required for Gemini TTS")
+            errors.append("GOOGLE_API_KEY is required for Gemini TTS — set it in your .env file")
         if self.vocal_separator == "lalal" and not self.lalal_api_key:
-            errors.append("LALAL_API_KEY is required when using LALAL.AI for vocal separation")
+            errors.append("LALAL_API_KEY is required for LALAL.AI vocal separation — set it in your .env file")
         return errors

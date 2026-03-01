@@ -1,4 +1,5 @@
 import logging
+import shutil
 import subprocess
 import sys
 import time
@@ -199,7 +200,9 @@ def separate_vocals_lalal(audio_path: str, output_dir: str, api_key: str) -> str
 
     output_path = output_dir_path / "no_vocals.wav"
     logger.info(f"LALAL.AI: Downloading instrumental track...")
-    urllib.request.urlretrieve(back_url, str(output_path))
+    with urllib.request.urlopen(back_url, timeout=120) as resp:
+        with open(str(output_path), "wb") as f:
+            shutil.copyfileobj(resp, f)
 
     logger.info(f"Vocal separation complete: {output_path}")
 

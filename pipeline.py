@@ -168,6 +168,7 @@ def run_pipeline_phase1(
     url: str,
     config: Config,
     progress_cb: Callable[[float, str], None] | None = None,
+    prefetched_metadata: VideoMetadata | None = None,
 ) -> Phase1Result:
     """Run steps 1-4: metadata, download, transcript, translation."""
     temp = TempManager(config.temp_dir)
@@ -182,8 +183,12 @@ def run_pipeline_phase1(
         if progress_cb:
             progress_cb(step[1], step[0])
         t0 = time.time()
-        logger.info("Extracting metadata...")
-        metadata = get_metadata(url)
+        if prefetched_metadata:
+            metadata = prefetched_metadata
+            logger.info(f"Using prefetched metadata: {metadata.title}")
+        else:
+            logger.info("Extracting metadata...")
+            metadata = get_metadata(url)
         timings.append(("Metadata", time.time() - t0))
         logger.info(f"  -> {timings[-1][1]:.1f}s")
         if progress_cb:
@@ -293,6 +298,7 @@ def run_pipeline_phase1(
         )
 
     except Exception as e:
+        logger.error(f"Pipeline phase 1 failed: {e}", exc_info=True)
         temp.cleanup()
         raise
 
@@ -404,6 +410,8 @@ def run_pipeline_phase2(
         if progress_cb:
             progress_cb(step[1], step[0])
 
+        if not re.match(r'^[a-zA-Z0-9_-]{1,20}$', metadata.video_id):
+            raise ValueError(f"Invalid video ID format: {metadata.video_id!r}")
         dir_name = f"{metadata.video_id}_{_sanitize_dirname(metadata.title)}"
         video_out_dir = VIDEOS_DIR / dir_name
 
@@ -454,10 +462,11 @@ def run_pipeline(
     url: str,
     config: Config,
     progress_cb: Callable[[float, str], None] | None = None,
+    prefetched_metadata: VideoMetadata | None = None,
 ) -> PipelineResult:
     """Run the full pipeline (both phases) without pausing."""
     try:
-        phase1 = run_pipeline_phase1(url, config, progress_cb)
+        phase1 = run_pipeline_phase1(url, config, progress_cb, prefetched_metadata)
         return run_pipeline_phase2(phase1, phase1.translated_segments, progress_cb)
     except Exception as e:
         logger.error(f"Pipeline failed: {e}", exc_info=True)

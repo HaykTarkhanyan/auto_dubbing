@@ -40,6 +40,8 @@ class CostTracker:
         self.tts_calls += 1
 
     def _cost_for(self, model: str, input_tokens: int, output_tokens: int) -> float:
+        if not model:
+            return 0.0
         pricing = PRICING.get(model)
         if not pricing:
             logger.warning(f"No pricing data for model: {model}")
