@@ -223,6 +223,30 @@ def _enforce_duration_bounds(
     return result
 
 
+def _apply_trim_to_segments(
+    segments: list[TranscriptSegment],
+    trim_start: float,
+    trim_end: float | None,
+) -> list[TranscriptSegment]:
+    """Filter segments to a time range and offset timestamps to start from 0."""
+    result = []
+    for seg in segments:
+        # Skip segments entirely outside the trim range
+        if trim_end is not None and seg.start >= trim_end:
+            continue
+        if seg.end <= trim_start:
+            continue
+        # Clamp and offset
+        new_start = max(seg.start, trim_start) - trim_start
+        new_end = (min(seg.end, trim_end) if trim_end is not None else seg.end) - trim_start
+        result.append(TranscriptSegment(
+            text=seg.text,
+            start=new_start,
+            duration=max(new_end - new_start, 0.1),
+        ))
+    return result
+
+
 def extract_transcript(
     video_id: str,
     audio_path: str | None,
@@ -230,12 +254,22 @@ def extract_transcript(
     segment_min_duration: float = 5.0,
     segment_max_duration: float = 30.0,
     progress_cb: Callable[[float], None] | None = None,
+    trim_start: float | None = None,
+    trim_end: float | None = None,
 ) -> list[TranscriptSegment]:
     if progress_cb:
         progress_cb(0.1)
 
     # Try YouTube captions first
     raw_segments = get_youtube_transcript(video_id)
+    if raw_segments:
+        # YouTube captions have full-video timestamps — filter to trim range
+        if trim_start is not None or trim_end is not None:
+            raw_segments = _apply_trim_to_segments(raw_segments, trim_start or 0, trim_end)
+            if not raw_segments:
+                logger.info("No YouTube captions in trim range, falling back to Whisper")
+                raw_segments = None
+
     if raw_segments:
         if progress_cb:
             progress_cb(0.5)
@@ -244,7 +278,7 @@ def extract_transcript(
             progress_cb(1.0)
         return segments
 
-    # Fallback to Whisper
+    # Fallback to Whisper (audio is already trimmed, timestamps are correct)
     if not audio_path:
         raise RuntimeError("No YouTube captions found and no audio path provided for Whisper fallback")
 

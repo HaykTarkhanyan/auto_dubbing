@@ -42,6 +42,10 @@ class Config:
     vocal_separator: str = "lalal"     # Options: "demucs", "mdx", "lalal" (LALAL.AI API)
     background_volume_db: float = -3.0  # Volume adjustment for background music (dB)
 
+    # --- Trimming ---
+    trim_start: float | None = None     # Start time in seconds (None = beginning)
+    trim_end: float | None = None       # End time in seconds (None = end of video)
+
     # --- Transcript segmentation ---
     segment_min_duration: float = 5.0   # Merge short sentences until this minimum
     segment_max_duration: float = 30.0  # Split sentences longer than this

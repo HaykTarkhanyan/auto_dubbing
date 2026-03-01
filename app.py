@@ -125,7 +125,22 @@ def check_ffmpeg() -> bool:
     return shutil.which("ffmpeg") is not None
 
 
-def _build_config(translation_provider, whisper_model, speed_max, keep_background, tts_voice, vocal_sep):
+def _parse_time(value: str) -> float | None:
+    """Parse a time string like '1:30', '90', '0:45.5' into seconds. Empty → None."""
+    value = value.strip()
+    if not value:
+        return None
+    if ":" in value:
+        parts = value.split(":")
+        if len(parts) == 2:
+            return float(parts[0]) * 60 + float(parts[1])
+        if len(parts) == 3:
+            return float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+    return float(value)
+
+
+def _build_config(translation_provider, whisper_model, speed_max, keep_background, tts_voice, vocal_sep,
+                  start_time="", end_time=""):
     config = Config.from_env()
     config.translation_provider = "claude" if translation_provider == "Claude Sonnet" else "gemini"
     config.whisper_model_size = whisper_model
@@ -133,6 +148,13 @@ def _build_config(translation_provider, whisper_model, speed_max, keep_backgroun
     config.keep_background_music = keep_background
     config.tts_voice_name = tts_voice
     config.vocal_separator = vocal_sep
+    try:
+        config.trim_start = _parse_time(start_time)
+        config.trim_end = _parse_time(end_time)
+    except (ValueError, IndexError):
+        raise gr.Error("Invalid time format. Use mm:ss (e.g. 1:30) or seconds (e.g. 90).")
+    if config.trim_start is not None and config.trim_end is not None and config.trim_start >= config.trim_end:
+        raise gr.Error("Start time must be before end time.")
     errors = config.validate()
     if errors:
         raise gr.Error(f"Configuration error: {'; '.join(errors)}")
@@ -243,7 +265,7 @@ def _yield_log_updates():
 # ── Phase 1: Metadata → Download → Transcript → Translate ────────
 def run_phase1(
     url, translation_provider, whisper_model, speed_max,
-    keep_background, skip_review, tts_voice, vocal_sep, state,
+    keep_background, skip_review, tts_voice, vocal_sep, start_time, end_time, state,
 ):
     if not url.strip():
         raise gr.Error("Please enter a YouTube URL")
@@ -254,7 +276,8 @@ def run_phase1(
         )
 
     log_capture.clear()
-    config = _build_config(translation_provider, whisper_model, speed_max, keep_background, tts_voice, vocal_sep)
+    config = _build_config(translation_provider, whisper_model, speed_max, keep_background, tts_voice, vocal_sep,
+                           start_time, end_time)
 
     # ── Immediate yield: fetch metadata and show it right away ──
     metadata = None
@@ -481,14 +504,15 @@ footer { display: none !important; }
 """
 
 
-def build_ui() -> gr.Blocks:
-    theme = gr.themes.Soft(
-        primary_hue=gr.themes.colors.blue,
-        secondary_hue=gr.themes.colors.slate,
-        font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
-    )
+THEME = gr.themes.Soft(
+    primary_hue=gr.themes.colors.blue,
+    secondary_hue=gr.themes.colors.slate,
+    font=[gr.themes.GoogleFont("Inter"), "system-ui", "sans-serif"],
+)
 
-    with gr.Blocks(title="Auto Dubbing — EN → HY", theme=theme, css=CSS) as app:
+
+def build_ui() -> gr.Blocks:
+    with gr.Blocks(title="Auto Dubbing — EN → HY") as app:
 
         gr.HTML(
             '<div class="main-header">'
@@ -508,6 +532,20 @@ def build_ui() -> gr.Blocks:
                     lines=1,
                     max_lines=1,
                 )
+
+                with gr.Row():
+                    start_time = gr.Textbox(
+                        label="Start time",
+                        placeholder="e.g. 1:30",
+                        lines=1, max_lines=1,
+                        info="Leave empty for beginning",
+                    )
+                    end_time = gr.Textbox(
+                        label="End time",
+                        placeholder="e.g. 3:45",
+                        lines=1, max_lines=1,
+                        info="Leave empty for end",
+                    )
 
                 translation_provider = gr.Radio(
                     choices=["Gemini Pro", "Claude Sonnet"],
@@ -602,7 +640,8 @@ def build_ui() -> gr.Blocks:
             fn=run_phase1,
             inputs=[
                 url_input, translation_provider, whisper_model, speed_max,
-                keep_background, skip_review, tts_voice, vocal_sep, state,
+                keep_background, skip_review, tts_voice, vocal_sep,
+                start_time, end_time, state,
             ],
             outputs=phase1_outputs,
             show_progress="full",
@@ -629,4 +668,4 @@ if __name__ == "__main__":
         print("Install ffmpeg: https://ffmpeg.org/download.html")
 
     app = build_ui()
-    app.launch()
+    app.launch(theme=THEME, css=CSS)

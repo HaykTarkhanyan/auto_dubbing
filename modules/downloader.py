@@ -95,6 +95,24 @@ def download_video(
         raise FileNotFoundError(f"Downloaded video not found in {output_dir}")
 
 
+def trim_video(video_path: str, output_path: str, start: float | None, end: float | None) -> str:
+    """Trim a video using ffmpeg stream copy (fast, no re-encode). Returns output path."""
+    cmd = ["ffmpeg", "-y"]
+    if start is not None:
+        cmd += ["-ss", str(start)]
+    cmd += ["-i", video_path]
+    if end is not None:
+        # -to is relative to -ss when -ss is before -i
+        duration = end - (start or 0)
+        cmd += ["-t", str(duration)]
+    cmd += ["-c", "copy", "-map", "0", output_path]
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg trim failed: {result.stderr}")
+    logger.info(f"Trimmed video: {start or 0:.1f}s–{end or '?'}s → {output_path}")
+    return output_path
+
+
 def get_video_duration(video_path: str) -> float:
     """Get exact video duration via ffprobe."""
     info = _ffprobe_json(video_path, show_streams=False)

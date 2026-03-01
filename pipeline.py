@@ -9,7 +9,7 @@ from typing import Callable
 
 from config import Config
 from modules.cache import PipelineCache
-from modules.downloader import get_metadata, download_video, extract_audio, get_video_duration, download_thumbnail, VideoMetadata
+from modules.downloader import get_metadata, download_video, extract_audio, get_video_duration, trim_video, download_thumbnail, VideoMetadata
 from modules.transcript import TranscriptSegment, extract_transcript
 from modules.translator import translate_segments
 from modules.tts import TTSResult, synthesize_all_segments
@@ -222,6 +222,14 @@ def run_pipeline_phase1(
             logger.info(f"Duration corrected: {metadata.duration:.1f}s (metadata) -> {actual_duration:.2f}s (ffprobe)")
         metadata.duration = actual_duration
 
+        # Trim video if start/end times are specified
+        if config.trim_start is not None or config.trim_end is not None:
+            trimmed_path = temp.get_path("trimmed_video.mp4")
+            video_path = trim_video(video_path, trimmed_path, config.trim_start, config.trim_end)
+            trimmed_duration = get_video_duration(video_path)
+            logger.info(f"Trimmed to {config.trim_start or 0:.1f}s–{config.trim_end or metadata.duration:.1f}s ({trimmed_duration:.1f}s)")
+            metadata.duration = trimmed_duration
+
         timings.append(("Download", time.time() - t0))
         logger.info(f"  -> {timings[-1][1]:.1f}s")
 
@@ -231,19 +239,20 @@ def run_pipeline_phase1(
             progress_cb(step[1], step[0])
         t0 = time.time()
 
-        transcript_key = f"{config.whisper_model_size}_{config.segment_min_duration}_{config.segment_max_duration}"
+        # Include trim range in cache key so different trims don't share transcripts
+        trim_key = f"_{config.trim_start}_{config.trim_end}" if (config.trim_start or config.trim_end) else ""
+        transcript_key = f"{config.whisper_model_size}_{config.segment_min_duration}_{config.segment_max_duration}{trim_key}"
         cached_transcript = cache.get_transcript(transcript_key)
         if cached_transcript:
             original_segments = cached_transcript
             logger.info(f"Using cached transcript: {len(original_segments)} segments")
         else:
             logger.info("Extracting transcript...")
-            cached_audio = cache.get_audio()
-            if cached_audio:
-                audio_path = cached_audio
-            else:
-                video_dir_for_audio = str(temp.subdirectory("video"))
-                audio_path = extract_audio(video_path, video_dir_for_audio)
+            # Extract audio from (possibly trimmed) video
+            audio_dir = str(temp.subdirectory("audio_for_transcript"))
+            audio_path = extract_audio(video_path, audio_dir)
+            if not (config.trim_start or config.trim_end):
+                # Only cache audio from untrimmed video
                 cache.put_audio(audio_path)
 
             original_segments = extract_transcript(
@@ -253,6 +262,8 @@ def run_pipeline_phase1(
                 segment_min_duration=config.segment_min_duration,
                 segment_max_duration=config.segment_max_duration,
                 progress_cb=_make_step_cb(progress_cb, step[0], step[1], step[2]),
+                trim_start=config.trim_start,
+                trim_end=config.trim_end,
             )
             cache.put_transcript(transcript_key, original_segments)
 
