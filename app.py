@@ -378,8 +378,14 @@ def run_phase2(state, edited_table):
     log_capture.clear()
     meta_html = _build_metadata_html(phase1.metadata)
 
+    # Normalize: Gradio may pass a pandas DataFrame or a list of lists
+    if hasattr(edited_table, "values"):
+        rows = edited_table.values.tolist()
+    else:
+        rows = list(edited_table)
+
     translated_segments = []
-    for i, row in enumerate(edited_table):
+    for i, row in enumerate(rows):
         orig = phase1.original_segments[i]
         edited_text = str(row[2]) if len(row) > 2 else orig.text
         translated_segments.append(TranscriptSegment(

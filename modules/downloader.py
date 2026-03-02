@@ -3,6 +3,7 @@ import logging
 import shutil
 import subprocess
 import re
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -43,8 +44,21 @@ def extract_video_id(url: str) -> str:
     raise ValueError(f"Could not extract video ID from URL: {url}")
 
 
+def _clean_youtube_url(url: str) -> str:
+    """Strip playlist/radio params from YouTube URLs to avoid yt-dlp processing entire playlists."""
+    parsed = urllib.parse.urlparse(url)
+    if "youtube.com" in parsed.netloc or "youtu.be" in parsed.netloc:
+        params = urllib.parse.parse_qs(parsed.query)
+        # Keep only the video ID param, drop list/index/start_radio etc.
+        clean_params = {k: v for k, v in params.items() if k in ("v",)}
+        cleaned = parsed._replace(query=urllib.parse.urlencode(clean_params, doseq=True))
+        return urllib.parse.urlunparse(cleaned)
+    return url
+
+
 def get_metadata(url: str) -> VideoMetadata:
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    url = _clean_youtube_url(url)
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "noplaylist": True}
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=False)
 
@@ -72,12 +86,14 @@ def download_video(
             if total > 0:
                 progress_cb(downloaded / total)
 
+    url = _clean_youtube_url(url)
     opts = {
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/bestvideo+bestaudio/best",
         "outtmpl": output_template,
         "merge_output_format": "mp4",
         "quiet": True,
         "no_warnings": True,
+        "noplaylist": True,
         "progress_hooks": [_progress_hook],
     }
 
@@ -161,7 +177,8 @@ def _ffprobe_json(video_path: str, show_streams: bool = False) -> dict:
 
 def download_thumbnail(url: str, output_path: str) -> str:
     """Download the highest quality thumbnail for a YouTube video."""
-    opts = {"quiet": True, "no_warnings": True, "skip_download": True}
+    url = _clean_youtube_url(url)
+    opts = {"quiet": True, "no_warnings": True, "skip_download": True, "noplaylist": True}
     with yt_dlp.YoutubeDL(opts) as ydl:
         info = ydl.extract_info(url, download=False)
 

@@ -1,7 +1,34 @@
-Video: Zooming out by powers of 10 (97.3s)
-Segments: 1
+Video: The illusion only some can see (60s)
+Segments: 8
 
---- Segment 1 [0.1s - 99.0s] ---
-  EN: this animation zooms out by a factor of 10 every 3 seconds it was made by my collaborator Paul dstep as part of a pair of videos on how we know the distances to various objects in the cosmos and on the one hand I think it does it very well notice for example how as we depart the solar system we pass through these many seemingly blank orders of magnitude before we even see the first star now on the other hand I think these kinds of powers of 10 Zoom outs can risk underselling the true Scale of the Universe if you think about it the implied camera position is moving just so so much faster than the cosmic speed limit the speed of light and it makes the distant objects like other galaxies feel almost accessible when in fact it would take around 2 and 1/2 million years to even reach the nearest galaxy if you were traveling at the speed of light I'll also be honest with you we struggled a lot with how exactly to end this zoom out cuz we wanted to remain scientifically accurate without falling too deep into that trap of doing artists Renditions of the universe ultimately what I settled on was doing a simple Point Cloud representing data pulled from the slone galactic survey which essentially Maps the distances to various galaxies at many different directions you could point in the sky I find it a mindboggling testament to the powers of Science and deduction that this is even possible that despite the fact that all these galaxies are so many millions and billions of light years away from each other that they are completely beyond our grasp we can nevertheless map them and and study patterns like the Clusters and strands that these billions of galaxies form in the vast reaches of unfathomable space
-  HY: Այս անիմացիան յուրաքանչյուր 3 վայրկյանում 10 անգամ փոքրացնում է մասշտաբը։ Այն ստեղծել է իմ գործընկեր Փոլ դՍտեփը՝ որպես մի տեսանյութի մաս այն մասին, թե ինչպես ենք մենք իմանում տիեզերքի տարբեր օբյեկտների հեռավորությունները։ Եվ մի կողմից, կարծում եմ, այն իր գործը շատ լավ է անում։ Օրինակ՝ նկատեք, թե ինչպես, Արեգակնային համակարգից հեռանալիս, մենք անցնում ենք թվացյալ դատարկ տարածության բազմաթիվ կարգերով, մինչև նույնիսկ առաջին աստղը տեսնելը։ Իսկ մյուս կողմից, կարծում եմ, մասշտաբի այսպիսի փոքրացումները կարող են Տիեզերքի իրական չափերը թերագնահատելու տպավորություն ստեղծել։ Եթե մտածեք, ենթադրվող տեսախցիկի դիրքը շարժվում է անհամեմատ ավելի արագ, քան տիեզերական արագության սահմանը՝ լույսի արագությունը։ Եվ դա հեռավոր օբյեկտները, ինչպիսիք են այլ գալակտիկաները, գրեթե հասանելիի տպավորություն է ստեղծում, մինչդեռ իրականում մոտ երկուսուկես միլիոն տարի կպահանջվեր նույնիսկ ամենամոտ գալակտիկային հասնելու համար, եթե շարժվեիք լույսի արագությամբ։ Անկեղծ կլինեմ ձեզ հետ, մենք շատ ենք չարչարվել՝ հասկանալու համար, թե կոնկրետ ինչպես ավարտել այս տեսանյութը, քանի որ ուզում էինք մնալ գիտականորեն ճշգրիտ պատկեր՝ չընկնելով տիեզերքի նկարչական մեկնաբանություններ անելու ծուղակը։ Ի վերջո, ես որոշեցի ստեղծել պարզ կետերի ամպ՝ ներկայացնելով Սլոունի գալակտիկական հետազոտությունից վերցված տվյալները, որն, ըստ էության, քարտեզագրում է տարբեր գալակտիկաների հեռավորությունները երկնքի բազմաթիվ ուղղություններով։ Ես սա համարում եմ գիտության և դեդուկցիայի ուժի խելահան անող մի վկայություն, որ սա ընդհանրապես հնարավոր է։ Որ չնայած այն փաստին, որ այս բոլոր գալակտիկաները միմյանցից միլիոնավոր ու միլիարդավոր լուսատարիներով են հեռու, որ դրանք ամբողջովին մեր հասանելիությունից դուրս են, մենք, այնուամենայնիվ, կարող ենք դրանք քարտեզագրել և ուսումնասիրել այնպիսի կառուցվածքներ, ինչպիսիք են կլաստերներն ու թելերը, որոնք այս միլիարդավոր գալակտիկաները ձևավորում են անըմբռնելի տիեզերքի անծայրածիր տարածքներում։
+--- Segment 0 [0.0s - 5.5s] ---
+  EN: This is the first part of a three-part illusion. What do you see?
+  HY: Սա երեք մասից բաղկացած իլյուզիայի առաջին մասն է։ Ի՞նչ ես տեսնում։
 
+--- Segment 1 [5.6s - 13.5s] ---
+  EN: Well, there's a window and it's turning... Except it stops and reverses direction.
+  HY: Դե, մի պատուհան կա ու պտտվում ա... Բայց կանգնում ա ու հետ շրջվում։
+
+--- Segment 2 [13.6s - 19.9s] ---
+  EN: I'm going to attach this Rubik's Cube to the short side of the trapezoid.
+  HY: Հիմա էս Ռուբիկ կուբիկը կամրացնեմ սեղանի կարճ կողմին։
+
+--- Segment 3 [20.0s - 26.2s] ---
+  EN: Okay the Rubik's Cube is going around... but now, what is that?
+  HY: Օքեյ, Ռուբիկ կուբիկը պտտվում ա... բայց հիմա, էս ի՞նչ ա։
+
+--- Segment 4 [26.3s - 34.4s] ---
+  EN: It looks like the Rubik's Cube is continuing to go around but the window is oscillating back and forth.
+  HY: Թվում ա, թե Ռուբիկ կուբիկը շարունակում ա պտտվել, իսկ պատուհանը առաջ-հետ ա տատանվում։
+
+--- Segment 5 [34.5s - 43.3s] ---
+  EN: Okay new plan, I'm going to take off the Rubik's Cube and I'm going to put a ruler right through the middle of the window.
+  HY: Լավ, նոր պլան․ հանելու եմ Ռուբիկ կուբիկը ու մի քանոն եմ անցկացնելու ուղիղ պատուհանի մեջտեղով։
+
+--- Segment 6 [43.3s - 49.2s] ---
+  EN: Okay the ruler is rotating around but wait now the window is going backwards!
+  HY: Օքեյ, քանոնը պտտվում ա, բայց սպասի՛, հիմա պատուհանը հետ ա գնում։
+
+--- Segment 7 [49.3s - 60.0s] ---
+  EN: Whoa whoa the ruler is going through the window it is doing things which I know are physically impossible but that is how my brain is seeing it.
+  HY: Վա՜յ, վա՜յ, քանոնը պատուհանի միջով ա անցնում։ Գիտեմ, որ դա ֆիզիկապես անհնար ա, բայց ուղեղս հենց էդպես ա տեսնում։
